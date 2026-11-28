@@ -1,0 +1,1908 @@
+{
+  "version": "b97ad43477",
+  "levels": [
+    {
+      "id": "a1",
+      "cefr": "A1",
+      "title": "First steps",
+      "ready": true,
+      "units": [
+        {
+          "id": "a1-u01",
+          "title": "Letters and sounds",
+          "titleTk": "Salam!",
+          "batch": "A1-1",
+          "status": "ready",
+          "interlude": "Three alphabets in one century",
+          "points": ["gp-alphabet", "gp-pronunciation", "gp-vowel-length", "gp-sentence-basics"],
+          "lessons": [
+            {
+              "id": "a1-u01-l01",
+              "title": "Hello and thank you",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u01-l02",
+              "title": "Goodbye, please and sorry",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u01-l03",
+              "title": "What's your name?",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u01-l04",
+              "title": "Meeting people",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a1-u02",
+          "title": "Vowel harmony and plurals",
+          "titleTk": "Bu näme?",
+          "batch": "A1-1",
+          "status": "ready",
+          "interlude": "The Akhal-Teke horse",
+          "points": ["gp-vowel-groups", "gp-harmony-2way", "gp-plural", "gp-demonstratives", "gp-bir-indefinite"],
+          "lessons": [
+            {
+              "id": "a1-u02-l01",
+              "title": "What is this?",
+              "exercises": 12
+            },
+            {
+              "id": "a1-u02-l02",
+              "title": "Front and back vowels",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u02-l03",
+              "title": "Colours",
+              "exercises": 12
+            },
+            {
+              "id": "a1-u02-l04",
+              "title": "In the classroom",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a1-u03",
+          "title": "Saying who you are",
+          "titleTk": "Men talyp",
+          "batch": "A1-1",
+          "status": "ready",
+          "interlude": "Turkmen names",
+          "points": ["gp-harmony-rounding", "gp-personal-pronouns", "gp-copula-present", "gp-nationality-words"],
+          "lessons": [
+            {
+              "id": "a1-u03-l01",
+              "title": "Who are you?",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u03-l02",
+              "title": "How are you feeling?",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u03-l03",
+              "title": "Where are you from?",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u03-l04",
+              "title": "Introductions",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a1-u04",
+          "title": "Questions and negation",
+          "titleTk": "Sen ýadawmy?",
+          "batch": "A1-2",
+          "status": "ready",
+          "interlude": "Ependi",
+          "points": ["gp-dal", "gp-question-my", "gp-question-words", "gp-answers", "gp-hem"],
+          "lessons": [
+            {
+              "id": "a1-u04-l01",
+              "title": "It isn't hot",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u04-l02",
+              "title": "Are you ready?",
+              "exercises": 12
+            },
+            {
+              "id": "a1-u04-l03",
+              "title": "When is the lesson?",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u04-l04",
+              "title": "Me too",
+              "exercises": 14
+            }
+          ]
+        },
+        {
+          "id": "a1-u05",
+          "title": "Where things are",
+          "titleTk": "Öýde hiç kim ýok",
+          "batch": "A1-2",
+          "status": "ready",
+          "interlude": "Ashgabat",
+          "points": ["gp-locative", "gp-bar-yok", "gp-proper-nouns", "gp-place-words"],
+          "lessons": [
+            {
+              "id": "a1-u05-l01",
+              "title": "At home, at school",
+              "exercises": 12
+            },
+            {
+              "id": "a1-u05-l02",
+              "title": "Is there a café here?",
+              "exercises": 12
+            },
+            {
+              "id": "a1-u05-l03",
+              "title": "Here, there and with me",
+              "exercises": 12
+            },
+            {
+              "id": "a1-u05-l04",
+              "title": "Nobody's home",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a1-u06",
+          "title": "The present tense",
+          "titleTk": "Näme edýärsiň?",
+          "batch": "A1-2",
+          "status": "ready",
+          "interlude": "Green tea and the çaýhana",
+          "points": ["gp-infinitive-stem", "gp-present-yar", "gp-present-negative", "gp-present-uses"],
+          "lessons": [
+            {
+              "id": "a1-u06-l01",
+              "title": "What are you doing?",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u06-l02",
+              "title": "Coming and going",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u06-l03",
+              "title": "I don't know",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u06-l04",
+              "title": "Every day at the çaýhana",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a1-u07",
+          "title": "To and from",
+          "titleTk": "Nirä barýarsyň?",
+          "batch": "A1-3",
+          "status": "ready",
+          "interlude": "The Karakum",
+          "points": ["gp-dative", "gp-ablative", "gp-pronoun-cases-dat-abl"],
+          "lessons": [
+            {
+              "id": "a1-u07-l01",
+              "title": "Going places",
+              "exercises": 14
+            },
+            {
+              "id": "a1-u07-l02",
+              "title": "To Mary, to Mum",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u07-l03",
+              "title": "From here to there",
+              "exercises": 14
+            },
+            {
+              "id": "a1-u07-l04",
+              "title": "Bus, train, taxi",
+              "exercises": 14
+            }
+          ]
+        },
+        {
+          "id": "a1-u08",
+          "title": "Definite objects",
+          "titleTk": "Çöregi alýaryn",
+          "batch": "A1-3",
+          "status": "ready",
+          "interlude": "Bread and the tamdyr",
+          "points": ["gp-accusative", "gp-voicing", "gp-pronoun-accusative", "gp-object-word-order"],
+          "lessons": [
+            {
+              "id": "a1-u08-l01",
+              "title": "Some tea or the tea",
+              "exercises": 12
+            },
+            {
+              "id": "a1-u08-l02",
+              "title": "Kitap, kitaby",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u08-l03",
+              "title": "Do you know me?",
+              "exercises": 14
+            },
+            {
+              "id": "a1-u08-l04",
+              "title": "At the bazaar",
+              "exercises": 12
+            }
+          ]
+        },
+        {
+          "id": "a1-u09",
+          "title": "My family",
+          "titleTk": "Meniň maşgalam",
+          "batch": "A1-3",
+          "status": "ready",
+          "interlude": "The toý",
+          "points": ["gp-possessive-suffixes", "gp-possessive-have", "gp-vowel-loss", "gp-possessive-voicing"],
+          "lessons": [
+            {
+              "id": "a1-u09-l01",
+              "title": "My family",
+              "exercises": 12
+            },
+            {
+              "id": "a1-u09-l02",
+              "title": "I have two sisters",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u09-l03",
+              "title": "Son, nose and mouth",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u09-l04",
+              "title": "Aunts and uncles",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a1-u10",
+          "title": "Whose is it?",
+          "titleTk": "Aýnanyň öýi",
+          "batch": "A1-4",
+          "status": "ready",
+          "interlude": "The ak öý",
+          "points": ["gp-genitive", "gp-genitive-possessive", "gp-pronominal-n", "gp-whose"],
+          "lessons": [
+            {
+              "id": "a1-u10-l01",
+              "title": "Aýna's phone",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u10-l02",
+              "title": "The door of the house",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u10-l03",
+              "title": "At Aýna's house",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u10-l04",
+              "title": "Whose is this?",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a1-u11",
+          "title": "Numbers and time",
+          "titleTk": "Sagat näçe?",
+          "batch": "A1-4",
+          "status": "ready",
+          "interlude": "Nowruz",
+          "points": ["gp-numbers", "gp-numbers-singular", "gp-ordinals", "gp-telling-time", "gp-dates", "gp-age-price"],
+          "lessons": [
+            {
+              "id": "a1-u11-l01",
+              "title": "One to a hundred",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u11-l02",
+              "title": "How old? How much?",
+              "exercises": 14
+            },
+            {
+              "id": "a1-u11-l03",
+              "title": "What time is it?",
+              "exercises": 14
+            },
+            {
+              "id": "a1-u11-l04",
+              "title": "Days and dates",
+              "exercises": 14
+            }
+          ]
+        },
+        {
+          "id": "a1-u12",
+          "title": "Requests and company",
+          "titleTk": "Gel, otur!",
+          "batch": "A1-4",
+          "status": "ready",
+          "interlude": "Palaw, dograma and gutap",
+          "points": ["gp-imperative", "gp-bilen", "gp-ucin", "gp-conjunctions-basic"],
+          "lessons": [
+            {
+              "id": "a1-u12-l01",
+              "title": "Come in, sit down!",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u12-l02",
+              "title": "Don't worry!",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u12-l03",
+              "title": "With my mother, for you",
+              "exercises": 13
+            },
+            {
+              "id": "a1-u12-l04",
+              "title": "At the café",
+              "exercises": 13
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a2",
+      "cefr": "A2",
+      "title": "Everyday life",
+      "ready": true,
+      "units": [
+        {
+          "id": "a2-u01",
+          "title": "The past tense",
+          "titleTk": "Düýn näme etdiň?",
+          "batch": "A2-1",
+          "status": "ready",
+          "interlude": "1991: independence and neutrality",
+          "points": ["gp-past-dy", "gp-past-dy-negative-question", "gp-person-endings-types", "gp-time-past"],
+          "lessons": [
+            {
+              "id": "a2-u01-l01",
+              "title": "What did you do yesterday?",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u01-l02",
+              "title": "I didn't — did you?",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u01-l03",
+              "title": "Two sets of endings",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u01-l04",
+              "title": "Last week, two days ago",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u02",
+          "title": "Was, were, and once upon a time",
+          "titleTk": "Bar eken, ýok eken",
+          "batch": "A2-1",
+          "status": "ready",
+          "interlude": "Turkmen folk tales",
+          "points": ["gp-past-copula", "gp-eken", "gp-ypdyr-intro"],
+          "lessons": [
+            {
+              "id": "a2-u02-l01",
+              "title": "When I was a child",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u02-l02",
+              "title": "There was snow",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u02-l03",
+              "title": "So he's a teacher!",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u02-l04",
+              "title": "Once upon a time",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u03",
+          "title": "The future",
+          "titleTk": "Sen ertir näme etjek?",
+          "batch": "A2-1",
+          "status": "ready",
+          "interlude": "Ancient Merv",
+          "points": ["gp-future-jak", "gp-future-negative-question", "gp-future-time-words"],
+          "lessons": [
+            {
+              "id": "a2-u03-l01",
+              "title": "Tomorrow I'll go",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u03-l02",
+              "title": "Will you? I won't.",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u03-l03",
+              "title": "Next week, next summer",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u03-l04",
+              "title": "A trip to Merv",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u04",
+          "title": "Habits and the general present",
+          "titleTk": "Her gün çaý içerin",
+          "batch": "A2-2",
+          "status": "ready",
+          "interlude": "Turkmen carpets",
+          "points": ["gp-aorist-forms", "gp-aorist-negative", "gp-aorist-uses", "gp-aorist-vs-yar"],
+          "lessons": [
+            {
+              "id": "a2-u04-l01",
+              "title": "Early or late",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u04-l02",
+              "title": "Never, sometimes, often",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u04-l03",
+              "title": "I'll call you, I promise",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u04-l04",
+              "title": "Now, always, tomorrow",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u05",
+          "title": "Can and can't",
+          "titleTk": "Ýüzüp bilýärsiňmi?",
+          "batch": "A2-2",
+          "status": "ready",
+          "interlude": "Göreş and horse races",
+          "points": ["gp-yp-bilmek", "gp-yp-bilmek-negative", "gp-ability-uses", "gp-negative-polarity"],
+          "lessons": [
+            {
+              "id": "a2-u05-l01",
+              "title": "I can swim",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u05-l02",
+              "title": "I couldn't come",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u05-l03",
+              "title": "May I come in?",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u05-l04",
+              "title": "Nobody came",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u06",
+          "title": "Must and need",
+          "titleTk": "Men gitmeli",
+          "batch": "A2-2",
+          "status": "ready",
+          "interlude": "Visiting a Turkmen home",
+          "points": ["gp-maly", "gp-gerek", "gp-maly-bolmak"],
+          "lessons": [
+            {
+              "id": "a2-u06-l01",
+              "title": "I must see a doctor",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u06-l02",
+              "title": "I need some medicine",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u06-l03",
+              "title": "I had to walk",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u06-l04",
+              "title": "Rules and signs",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u07",
+          "title": "Let's: suggestions and wishes",
+          "titleTk": "Gideli!",
+          "batch": "A2-3",
+          "status": "ready",
+          "interlude": "Küştdepdi",
+          "points": ["gp-optative", "gp-imperative-3rd", "gp-set-wishes", "gp-bolyar"],
+          "lessons": [
+            {
+              "id": "a2-u07-l01",
+              "title": "Shall I help? Let's go!",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u07-l02",
+              "title": "Let him wait",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u07-l03",
+              "title": "Congratulations!",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u07-l04",
+              "title": "Is that OK?",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u08",
+          "title": "Comparing",
+          "titleTk": "Has uly, iň gowy",
+          "batch": "A2-3",
+          "status": "ready",
+          "interlude": "Five welaýats",
+          "points": ["gp-comparative", "gp-superlative", "gp-equative", "gp-intensive-reduplication", "gp-adjectives-as-adverbs"],
+          "lessons": [
+            {
+              "id": "a2-u08-l01",
+              "title": "Taller than Batyr",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u08-l02",
+              "title": "The biggest in the world",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u08-l03",
+              "title": "Like you",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u08-l04",
+              "title": "Snow-white and straight ahead",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u09",
+          "title": "Where and when: postpositions",
+          "titleTk": "Öýüň öňünde",
+          "batch": "A2-3",
+          "status": "ready",
+          "interlude": "Gonur Depe",
+          "points": ["gp-postp-nominative", "gp-postp-dative", "gp-postp-ablative", "gp-place-nouns"],
+          "lessons": [
+            {
+              "id": "a2-u09-l01",
+              "title": "On the table, under the bed",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u09-l02",
+              "title": "In front of the house",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u09-l03",
+              "title": "About you, towards home",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u09-l04",
+              "title": "Since 2020",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u10",
+          "title": "Compound nouns and -daky",
+          "titleTk": "Türkmen halysy",
+          "batch": "A2-4",
+          "status": "ready",
+          "interlude": "The telpek and Turkmen dress",
+          "points": ["gp-compound-indefinite", "gp-compound-chains", "gp-daky", "gp-ky-pronoun"],
+          "lessons": [
+            {
+              "id": "a2-u10-l01",
+              "title": "At the bus stop",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u10-l02",
+              "title": "My phone number",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u10-l03",
+              "title": "Today's newspaper",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u10-l04",
+              "title": "Whose telpek is this?",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u11",
+          "title": "When, while and then",
+          "titleTk": "Öýe gelende",
+          "batch": "A2-4",
+          "status": "ready",
+          "interlude": "Görogly",
+          "points": ["gp-anda", "gp-ka", "gp-yp", "gp-yp-progressive", "gp-sequence-connectors"],
+          "lessons": [
+            {
+              "id": "a2-u11-l01",
+              "title": "When I get home",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u11-l02",
+              "title": "When I was a student",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u11-l03",
+              "title": "Busy right now",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u11-l04",
+              "title": "First, then, finally",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "a2-u12",
+          "title": "Word building",
+          "titleTk": "Aşgabatly mugallym",
+          "batch": "A2-4",
+          "status": "ready",
+          "interlude": "The Tolkuçka bazaar",
+          "points": ["gp-ly", "gp-syz", "gp-cy", "gp-lyk", "gp-ca", "gp-jyk"],
+          "lessons": [
+            {
+              "id": "a2-u12-l01",
+              "title": "With sugar or without?",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u12-l02",
+              "title": "Fishermen and bakers",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u12-l03",
+              "title": "Friendship and languages",
+              "exercises": 13
+            },
+            {
+              "id": "a2-u12-l04",
+              "title": "Little things at the bazaar",
+              "exercises": 13
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "cefr": "B1",
+      "title": "Stories and clauses",
+      "ready": true,
+      "units": [
+        {
+          "id": "b1-u01",
+          "title": "Past continuous and pluperfect",
+          "titleTk": "Ýagyş ýagýardy",
+          "batch": "B1-1",
+          "status": "ready",
+          "interlude": "The Seljuks",
+          "points": ["gp-past-continuous", "gp-pluperfect", "gp-compound-tenses", "gp-narrative-adverbs"],
+          "lessons": [
+            {
+              "id": "b1-u01-l01",
+              "title": "It was raining",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u01-l02",
+              "title": "Were you sleeping?",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u01-l03",
+              "title": "It had already started",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u01-l04",
+              "title": "Suddenly…",
+              "exercises": 12
+            }
+          ]
+        },
+        {
+          "id": "b1-u02",
+          "title": "Used to, was going to, should have",
+          "titleTk": "Öň bu ýerde ýaşardyk",
+          "batch": "B1-1",
+          "status": "ready",
+          "interlude": "Herders and oasis farmers",
+          "points": ["gp-used-to", "gp-future-in-past", "gp-should-have", "gp-could-have"],
+          "lessons": [
+            {
+              "id": "b1-u02-l01",
+              "title": "We used to live here",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u02-l02",
+              "title": "I was going to call you",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u02-l03",
+              "title": "You should have come early",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u02-l04",
+              "title": "I could have…",
+              "exercises": 12
+            }
+          ]
+        },
+        {
+          "id": "b1-u03",
+          "title": "Found out, heard, assumed",
+          "titleTk": "Ol gelipdir",
+          "batch": "B1-1",
+          "status": "ready",
+          "interlude": "Ancient Nisa",
+          "points": ["gp-ypdyr", "gp-ypdyr-vs-dy", "gp-eken-compounds", "gp-dyr-assumption"],
+          "lessons": [
+            {
+              "id": "b1-u03-l01",
+              "title": "You've changed!",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u03-l02",
+              "title": "Did you see it, or hear it?",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u03-l03",
+              "title": "So he's coming tomorrow",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u03-l04",
+              "title": "He must be at home",
+              "exercises": 12
+            }
+          ]
+        },
+        {
+          "id": "b1-u04",
+          "title": "Verbal nouns",
+          "titleTk": "Ýüzmegi gowy görýärin",
+          "batch": "B1-2",
+          "status": "ready",
+          "interlude": "Bagşy and the dutar",
+          "points": ["gp-mak-cases", "gp-mak-possessive", "gp-ys-yw", "gp-purpose"],
+          "lessons": [
+            {
+              "id": "b1-u04-l01",
+              "title": "I like swimming",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u04-l02",
+              "title": "I came to study",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u04-l03",
+              "title": "I need to go",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u04-l04",
+              "title": "The young bagshy",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "b1-u05",
+          "title": "Participles: who does it",
+          "titleTk": "Kitap okaýan oglan",
+          "batch": "B1-2",
+          "status": "ready",
+          "interlude": "Magtymguly Pyragy",
+          "points": ["gp-participle-yan", "gp-participle-an", "gp-headless-participles", "gp-relative-order"],
+          "lessons": [
+            {
+              "id": "b1-u05-l01",
+              "title": "The boy reading a book",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u05-l02",
+              "title": "The guest who came yesterday",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u05-l03",
+              "title": "The book I read",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u05-l04",
+              "title": "Those who came",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "b1-u06",
+          "title": "Future participles and fact clauses",
+          "titleTk": "Meniň okajak kitabym",
+          "batch": "B1-2",
+          "status": "ready",
+          "interlude": "Kemine and Mollanepes",
+          "points": ["gp-participle-jak", "gp-participle-madyk", "gp-dygy", "gp-relative-subject"],
+          "lessons": [
+            {
+              "id": "b1-u06-l01",
+              "title": "The book I'm going to read",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u06-l02",
+              "title": "A place I haven't seen",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u06-l03",
+              "title": "I know that he came",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u06-l04",
+              "title": "The film Aýna recommended",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "b1-u07",
+          "title": "Converbs I: after, before, without, until",
+          "titleTk": "Işden soň jaň ederin",
+          "batch": "B1-3",
+          "status": "ready",
+          "interlude": "Köneürgenç",
+          "points": ["gp-andan-son", "gp-mazdan-on", "gp-man", "gp-yanca", "gp-aly-bari"],
+          "lessons": [
+            {
+              "id": "b1-u07-l01",
+              "title": "After work",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u07-l02",
+              "title": "Before you set off",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u07-l03",
+              "title": "Without a word, until dawn",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u07-l04",
+              "title": "Since I came here",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "b1-u08",
+          "title": "Converbs II and helper verbs",
+          "titleTk": "Okap gör!",
+          "batch": "B1-3",
+          "status": "ready",
+          "interlude": "Gorkut Ata",
+          "points": ["gp-dygy-ucin", "gp-an-badyna", "gp-reduplicated", "gp-yp-helpers"],
+          "lessons": [
+            {
+              "id": "b1-u08-l01",
+              "title": "Because I was late",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u08-l02",
+              "title": "As soon as, again and again",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u08-l03",
+              "title": "Try it, for me, for yourself",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u08-l04",
+              "title": "Ready in advance, burst out laughing",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "b1-u09",
+          "title": "Conditionals",
+          "titleTk": "Wagtyň bolsa, gel",
+          "batch": "B1-4",
+          "status": "ready",
+          "interlude": "Darvaza",
+          "points": ["gp-conditional-sa", "gp-conditional-real", "gp-conditional-unreal", "gp-kaski"],
+          "lessons": [
+            {
+              "id": "b1-u09-l01",
+              "title": "If you have time",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u09-l02",
+              "title": "If you're coming",
+              "exercises": 14
+            },
+            {
+              "id": "b1-u09-l03",
+              "title": "If I were you",
+              "exercises": 14
+            },
+            {
+              "id": "b1-u09-l04",
+              "title": "If only",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "b1-u10",
+          "title": "Passive and reflexive",
+          "titleTk": "Bu jaý täzeden guruldy",
+          "batch": "B1-4",
+          "status": "ready",
+          "interlude": "The Karakum Canal",
+          "points": ["gp-passive", "gp-impersonal-passive", "gp-reflexive", "gp-oz"],
+          "lessons": [
+            {
+              "id": "b1-u10-l01",
+              "title": "It was built in 1980",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u10-l02",
+              "title": "No smoking here",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u10-l03",
+              "title": "Getting ready",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u10-l04",
+              "title": "By myself",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "b1-u11",
+          "title": "Causative and reciprocal",
+          "titleTk": "Saçymy kesdirdim",
+          "batch": "B1-5",
+          "status": "ready",
+          "interlude": "The Turkmen language",
+          "points": ["gp-causative", "gp-causative-objects", "gp-reciprocal", "gp-verb-derivation"],
+          "lessons": [
+            {
+              "id": "b1-u11-l01",
+              "title": "Make someone laugh",
+              "exercises": 14
+            },
+            {
+              "id": "b1-u11-l02",
+              "title": "Having things done",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u11-l03",
+              "title": "Each other",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u11-l04",
+              "title": "Verbs from words",
+              "exercises": 13
+            }
+          ]
+        },
+        {
+          "id": "b1-u12",
+          "title": "Reported speech",
+          "titleTk": "Ol näme diýdi?",
+          "batch": "B1-5",
+          "status": "ready",
+          "interlude": "Turkmen proverbs",
+          "points": ["gp-direct-speech", "gp-diyip-quotative", "gp-diyip-purpose", "gp-reported-speech"],
+          "lessons": [
+            {
+              "id": "b1-u12-l01",
+              "title": "“Come tomorrow,” she said",
+              "exercises": 14
+            },
+            {
+              "id": "b1-u12-l02",
+              "title": "Saying, thinking, naming",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u12-l03",
+              "title": "So that the baby doesn't wake",
+              "exercises": 13
+            },
+            {
+              "id": "b1-u12-l04",
+              "title": "She said she would come",
+              "exercises": 14
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "points": {
+    "gp-alphabet": {
+      "unit": "a1-u01",
+      "label": "The 30 letters",
+      "ready": true
+    },
+    "gp-pronunciation": {
+      "unit": "a1-u01",
+      "label": "One letter, one sound",
+      "ready": true
+    },
+    "gp-vowel-length": {
+      "unit": "a1-u01",
+      "label": "Long vowels, e and ä, and stress",
+      "ready": true
+    },
+    "gp-sentence-basics": {
+      "unit": "a1-u01",
+      "label": "How a Turkmen sentence works",
+      "ready": true
+    },
+    "gp-vowel-groups": {
+      "unit": "a1-u02",
+      "label": "Nine vowels in two groups",
+      "ready": true
+    },
+    "gp-harmony-2way": {
+      "unit": "a1-u02",
+      "label": "Two-way harmony: a or e",
+      "ready": true
+    },
+    "gp-plural": {
+      "unit": "a1-u02",
+      "label": "The plural: -lar and -ler",
+      "ready": true
+    },
+    "gp-demonstratives": {
+      "unit": "a1-u02",
+      "label": "This and that: bu, şu, ol, şol",
+      "ready": true
+    },
+    "gp-bir-indefinite": {
+      "unit": "a1-u02",
+      "label": "bir: one, and a",
+      "ready": true
+    },
+    "gp-harmony-rounding": {
+      "unit": "a1-u03",
+      "label": "High vowels and rounding: y, i, u, ü",
+      "ready": true
+    },
+    "gp-personal-pronouns": {
+      "unit": "a1-u03",
+      "label": "I, you, he, she: the personal pronouns",
+      "ready": true
+    },
+    "gp-copula-present": {
+      "unit": "a1-u03",
+      "label": "To be: Men talyp",
+      "ready": true
+    },
+    "gp-nationality-words": {
+      "unit": "a1-u03",
+      "label": "Nationalities and where you are from",
+      "ready": true
+    },
+    "gp-dal": {
+      "unit": "a1-u04",
+      "label": "Not: däl",
+      "ready": true
+    },
+    "gp-question-my": {
+      "unit": "a1-u04",
+      "label": "Yes-no questions: -mY",
+      "ready": true
+    },
+    "gp-question-words": {
+      "unit": "a1-u04",
+      "label": "Who, what, which, when, why",
+      "ready": true
+    },
+    "gp-answers": {
+      "unit": "a1-u04",
+      "label": "Yes, no and of course",
+      "ready": true
+    },
+    "gp-hem": {
+      "unit": "a1-u04",
+      "label": "Too, also, both: hem",
+      "ready": true
+    },
+    "gp-locative": {
+      "unit": "a1-u05",
+      "label": "In, at, on: the locative -dA",
+      "ready": true
+    },
+    "gp-bar-yok": {
+      "unit": "a1-u05",
+      "label": "There is, there isn't: bar and ýok",
+      "ready": true
+    },
+    "gp-proper-nouns": {
+      "unit": "a1-u05",
+      "label": "Endings on names",
+      "ready": true
+    },
+    "gp-place-words": {
+      "unit": "a1-u05",
+      "label": "Here, there, and with me",
+      "ready": true
+    },
+    "gp-infinitive-stem": {
+      "unit": "a1-u06",
+      "label": "The infinitive and the stem",
+      "ready": true
+    },
+    "gp-present-yar": {
+      "unit": "a1-u06",
+      "label": "The present: -ýAr",
+      "ready": true
+    },
+    "gp-present-negative": {
+      "unit": "a1-u06",
+      "label": "Negative and questions",
+      "ready": true
+    },
+    "gp-present-uses": {
+      "unit": "a1-u06",
+      "label": "Now, often and soon",
+      "ready": true
+    },
+    "gp-dative": {
+      "unit": "a1-u07",
+      "label": "To, toward: the dative -A",
+      "ready": true
+    },
+    "gp-ablative": {
+      "unit": "a1-u07",
+      "label": "From, out of: the ablative -dAn",
+      "ready": true
+    },
+    "gp-pronoun-cases-dat-abl": {
+      "unit": "a1-u07",
+      "label": "To me, from me: pronouns and question words",
+      "ready": true
+    },
+    "gp-accusative": {
+      "unit": "a1-u08",
+      "label": "Some tea or the tea: the accusative -(n)Y",
+      "ready": true
+    },
+    "gp-voicing": {
+      "unit": "a1-u08",
+      "label": "kitap → kitaby: k, p, ç, t before a vowel",
+      "ready": true
+    },
+    "gp-pronoun-accusative": {
+      "unit": "a1-u08",
+      "label": "Me, you, him: meni, seni, ony",
+      "ready": true
+    },
+    "gp-object-word-order": {
+      "unit": "a1-u08",
+      "label": "Where the object goes",
+      "ready": true
+    },
+    "gp-possessive-suffixes": {
+      "unit": "a1-u09",
+      "label": "My, your, his: the possessive endings",
+      "ready": true
+    },
+    "gp-possessive-have": {
+      "unit": "a1-u09",
+      "label": "I have: a possessed noun with bar",
+      "ready": true
+    },
+    "gp-vowel-loss": {
+      "unit": "a1-u09",
+      "label": "ogul → oglum: vowels that drop",
+      "ready": true
+    },
+    "gp-possessive-voicing": {
+      "unit": "a1-u09",
+      "label": "kitabym, adym: voicing with the possessives",
+      "ready": true
+    },
+    "gp-genitive": {
+      "unit": "a1-u10",
+      "label": "Of and 's: the genitive",
+      "ready": true
+    },
+    "gp-genitive-possessive": {
+      "unit": "a1-u10",
+      "label": "Aýna's house: an ending on each word",
+      "ready": true
+    },
+    "gp-pronominal-n": {
+      "unit": "a1-u10",
+      "label": "öýünde: the n after his and her",
+      "ready": true
+    },
+    "gp-whose": {
+      "unit": "a1-u10",
+      "label": "Whose? kimiň? and who has it? kimde?",
+      "ready": true
+    },
+    "gp-numbers": {
+      "unit": "a1-u11",
+      "label": "From one to a million",
+      "ready": true
+    },
+    "gp-numbers-singular": {
+      "unit": "a1-u11",
+      "label": "Two book: the singular after numbers",
+      "ready": true
+    },
+    "gp-ordinals": {
+      "unit": "a1-u11",
+      "label": "First, second, third: the ordinals",
+      "ready": true
+    },
+    "gp-telling-time": {
+      "unit": "a1-u11",
+      "label": "What time is it? Sagat näçe?",
+      "ready": true
+    },
+    "gp-dates": {
+      "unit": "a1-u11",
+      "label": "Days, months and dates",
+      "ready": true
+    },
+    "gp-age-price": {
+      "unit": "a1-u11",
+      "label": "How old? How much?",
+      "ready": true
+    },
+    "gp-imperative": {
+      "unit": "a1-u12",
+      "label": "Come! Sit down! The imperative",
+      "ready": true
+    },
+    "gp-bilen": {
+      "unit": "a1-u12",
+      "label": "With: bilen",
+      "ready": true
+    },
+    "gp-ucin": {
+      "unit": "a1-u12",
+      "label": "For: üçin",
+      "ready": true
+    },
+    "gp-conjunctions-basic": {
+      "unit": "a1-u12",
+      "label": "And, but, or",
+      "ready": true
+    },
+    "gp-past-dy": {
+      "unit": "a2-u01",
+      "label": "I came, we read: the past in -dY",
+      "ready": true
+    },
+    "gp-past-dy-negative-question": {
+      "unit": "a2-u01",
+      "label": "I didn't come; did you? Negative and questions",
+      "ready": true
+    },
+    "gp-person-endings-types": {
+      "unit": "a2-u01",
+      "label": "Two sets of personal endings",
+      "ready": true
+    },
+    "gp-time-past": {
+      "unit": "a2-u01",
+      "label": "Yesterday, last week, two days ago",
+      "ready": true
+    },
+    "gp-past-copula": {
+      "unit": "a2-u02",
+      "label": "I was, there was: the past of to be",
+      "ready": true
+    },
+    "gp-eken": {
+      "unit": "a2-u02",
+      "label": "So it is, I hear: eken",
+      "ready": true
+    },
+    "gp-ypdyr-intro": {
+      "unit": "a2-u02",
+      "label": "A first look at -(Y)pdYr: it has happened, I see",
+      "ready": true
+    },
+    "gp-future-jak": {
+      "unit": "a2-u03",
+      "label": "I will come: -jAk",
+      "ready": true
+    },
+    "gp-future-negative-question": {
+      "unit": "a2-u03",
+      "label": "Won't, will you? Negative and questions",
+      "ready": true
+    },
+    "gp-future-time-words": {
+      "unit": "a2-u03",
+      "label": "Tomorrow, next week, in two days",
+      "ready": true
+    },
+    "gp-aorist-forms": {
+      "unit": "a2-u04",
+      "label": "I drink, I'll drink: -Ar",
+      "ready": true
+    },
+    "gp-aorist-negative": {
+      "unit": "a2-u04",
+      "label": "I don't, I won't: -mAr and -mAz",
+      "ready": true
+    },
+    "gp-aorist-uses": {
+      "unit": "a2-u04",
+      "label": "What -Ar is for",
+      "ready": true
+    },
+    "gp-aorist-vs-yar": {
+      "unit": "a2-u04",
+      "label": "Choosing -ýAr or -Ar",
+      "ready": true
+    },
+    "gp-yp-bilmek": {
+      "unit": "a2-u05",
+      "label": "I can: -(Y)p bilmek",
+      "ready": true
+    },
+    "gp-yp-bilmek-negative": {
+      "unit": "a2-u05",
+      "label": "I can't: bilmeýärin, bilmerin, bilmedim",
+      "ready": true
+    },
+    "gp-ability-uses": {
+      "unit": "a2-u05",
+      "label": "May I? Is it possible?",
+      "ready": true
+    },
+    "gp-negative-polarity": {
+      "unit": "a2-u05",
+      "label": "Nobody, nothing, never",
+      "ready": true
+    },
+    "gp-maly": {
+      "unit": "a2-u06",
+      "label": "I must: -mAlY",
+      "ready": true
+    },
+    "gp-gerek": {
+      "unit": "a2-u06",
+      "label": "I need: gerek",
+      "ready": true
+    },
+    "gp-maly-bolmak": {
+      "unit": "a2-u06",
+      "label": "I had to, I'll have to",
+      "ready": true
+    },
+    "gp-optative": {
+      "unit": "a2-u07",
+      "label": "Let me, let's: the optative",
+      "ready": true
+    },
+    "gp-imperative-3rd": {
+      "unit": "a2-u07",
+      "label": "Let him, let them: -sYn",
+      "ready": true
+    },
+    "gp-set-wishes": {
+      "unit": "a2-u07",
+      "label": "Good wishes: … bolsun",
+      "ready": true
+    },
+    "gp-bolyar": {
+      "unit": "a2-u07",
+      "label": "OK? It won't do: bolýar, bolmaz",
+      "ready": true
+    },
+    "gp-comparative": {
+      "unit": "a2-u08",
+      "label": "Bigger than: -dan, has and -rAk",
+      "ready": true
+    },
+    "gp-superlative": {
+      "unit": "a2-u08",
+      "label": "The most: iň",
+      "ready": true
+    },
+    "gp-equative": {
+      "unit": "a2-u08",
+      "label": "As … as, very, a bit: ýaly, deň and the intensifiers",
+      "ready": true
+    },
+    "gp-intensive-reduplication": {
+      "unit": "a2-u08",
+      "label": "Snow-white, pitch-black: ap-ak, gap-gara",
+      "ready": true
+    },
+    "gp-adjectives-as-adverbs": {
+      "unit": "a2-u08",
+      "label": "Well, fast, slowly: adjectives as adverbs",
+      "ready": true
+    },
+    "gp-postp-nominative": {
+      "unit": "a2-u09",
+      "label": "With, for, like, about: bilen, üçin, ýaly, barada, hakda",
+      "ready": true
+    },
+    "gp-postp-dative": {
+      "unit": "a2-u09",
+      "label": "Until, according to, towards, against, near: the dative",
+      "ready": true
+    },
+    "gp-postp-ablative": {
+      "unit": "a2-u09",
+      "label": "After, before, since, apart from: the ablative",
+      "ready": true
+    },
+    "gp-place-nouns": {
+      "unit": "a2-u09",
+      "label": "On, under, in front, behind: place nouns",
+      "ready": true
+    },
+    "gp-compound-indefinite": {
+      "unit": "a2-u10",
+      "label": "Bus stop, Turkmen carpet: noun compounds",
+      "ready": true
+    },
+    "gp-compound-chains": {
+      "unit": "a2-u10",
+      "label": "My school bag, the centre of Ashgabat: possessives and the genitive",
+      "ready": true
+    },
+    "gp-daky": {
+      "unit": "a2-u10",
+      "label": "The book at home, today's paper: -dAky and -ky",
+      "ready": true
+    },
+    "gp-ky-pronoun": {
+      "unit": "a2-u10",
+      "label": "Mine, yours, Aýna's: -ky after the genitive",
+      "ready": true
+    },
+    "gp-anda": {
+      "unit": "a2-u11",
+      "label": "When: -AndA",
+      "ready": true
+    },
+    "gp-ka": {
+      "unit": "a2-u11",
+      "label": "While, when … was: -kA",
+      "ready": true
+    },
+    "gp-yp": {
+      "unit": "a2-u11",
+      "label": "Did this and did that: -(Y)p",
+      "ready": true
+    },
+    "gp-yp-progressive": {
+      "unit": "a2-u11",
+      "label": "Going on now: otyr, dur, ýatyr, ýör",
+      "ready": true
+    },
+    "gp-sequence-connectors": {
+      "unit": "a2-u11",
+      "label": "First, then, finally: telling a story",
+      "ready": true
+    },
+    "gp-ly": {
+      "unit": "a2-u12",
+      "label": "With, having, from: -lY",
+      "ready": true
+    },
+    "gp-syz": {
+      "unit": "a2-u12",
+      "label": "Without: -sYz",
+      "ready": true
+    },
+    "gp-cy": {
+      "unit": "a2-u12",
+      "label": "People and their work: -çY",
+      "ready": true
+    },
+    "gp-lyk": {
+      "unit": "a2-u12",
+      "label": "Friendship, independence: -lYk",
+      "ready": true
+    },
+    "gp-ca": {
+      "unit": "a2-u12",
+      "label": "In Turkmen, in my opinion: -çA",
+      "ready": true
+    },
+    "gp-jyk": {
+      "unit": "a2-u12",
+      "label": "Tiny and little: -jYk and -jAgAz",
+      "ready": true
+    },
+    "gp-past-continuous": {
+      "unit": "b1-u01",
+      "label": "Was doing: -ýArdY",
+      "ready": true
+    },
+    "gp-pluperfect": {
+      "unit": "b1-u01",
+      "label": "Had done: -(Y)pdY",
+      "ready": true
+    },
+    "gp-compound-tenses": {
+      "unit": "b1-u01",
+      "label": "One pattern, many pasts",
+      "ready": true
+    },
+    "gp-narrative-adverbs": {
+      "unit": "b1-u01",
+      "label": "Telling a story: birden, şol wagt, şondan soň",
+      "ready": true
+    },
+    "gp-used-to": {
+      "unit": "b1-u02",
+      "label": "Used to: -ArdY",
+      "ready": true
+    },
+    "gp-future-in-past": {
+      "unit": "b1-u02",
+      "label": "Was going to: -jAkdY",
+      "ready": true
+    },
+    "gp-should-have": {
+      "unit": "b1-u02",
+      "label": "Should have, had to: -mAlYdY",
+      "ready": true
+    },
+    "gp-could-have": {
+      "unit": "b1-u02",
+      "label": "Could have, couldn't have: -(Y)p bilerdi, -(Y)p bilmezdi",
+      "ready": true
+    },
+    "gp-ypdyr": {
+      "unit": "b1-u03",
+      "label": "-(Y)pdYr in every person",
+      "ready": true
+    },
+    "gp-ypdyr-vs-dy": {
+      "unit": "b1-u03",
+      "label": "Saw it or found out? -dY or -(Y)pdYr",
+      "ready": true
+    },
+    "gp-eken-compounds": {
+      "unit": "b1-u03",
+      "label": "eken after -ýAn, -An, -jAk and -mAlY",
+      "ready": true
+    },
+    "gp-dyr-assumption": {
+      "unit": "b1-u03",
+      "label": "Must be, probably: -dYr for a guess",
+      "ready": true
+    },
+    "gp-mak-cases": {
+      "unit": "b1-u04",
+      "label": "-mAk as a noun: swimming, to swim",
+      "ready": true
+    },
+    "gp-mak-possessive": {
+      "unit": "b1-u04",
+      "label": "My going, his coming: -mAk with possessive endings",
+      "ready": true
+    },
+    "gp-ys-yw": {
+      "unit": "b1-u04",
+      "label": "Nouns from verbs: -(Y)ş and -(Y)w",
+      "ready": true
+    },
+    "gp-purpose": {
+      "unit": "b1-u04",
+      "label": "In order to: -mAgA and -mAk üçin",
+      "ready": true
+    },
+    "gp-participle-yan": {
+      "unit": "b1-u05",
+      "label": "Step 1: -ýAn, the boy who is reading",
+      "ready": true
+    },
+    "gp-participle-an": {
+      "unit": "b1-u05",
+      "label": "Steps 2 and 3: -An, the guest who came, the book I read",
+      "ready": true
+    },
+    "gp-headless-participles": {
+      "unit": "b1-u05",
+      "label": "Step 4: participles as nouns, those who came",
+      "ready": true
+    },
+    "gp-relative-order": {
+      "unit": "b1-u05",
+      "label": "Step 5: everything before the noun",
+      "ready": true
+    },
+    "gp-participle-jak": {
+      "unit": "b1-u06",
+      "label": "-jAk: the book I'm going to read",
+      "ready": true
+    },
+    "gp-participle-madyk": {
+      "unit": "b1-u06",
+      "label": "-mAdYk: a book I haven't read",
+      "ready": true
+    },
+    "gp-dygy": {
+      "unit": "b1-u06",
+      "label": "Fact clauses: -dYgY after bilmek, eşitmek, aýtmak",
+      "ready": true
+    },
+    "gp-relative-subject": {
+      "unit": "b1-u06",
+      "label": "The doer inside: Aýnanyň okan kitaby",
+      "ready": true
+    },
+    "gp-andan-son": {
+      "unit": "b1-u07",
+      "label": "After: -Andan soň",
+      "ready": true
+    },
+    "gp-mazdan-on": {
+      "unit": "b1-u07",
+      "label": "Before: -mAzdAn öň",
+      "ready": true
+    },
+    "gp-man": {
+      "unit": "b1-u07",
+      "label": "Without: -mAn",
+      "ready": true
+    },
+    "gp-yanca": {
+      "unit": "b1-u07",
+      "label": "Until: -ýAnçA",
+      "ready": true
+    },
+    "gp-aly-bari": {
+      "unit": "b1-u07",
+      "label": "Since: -AlY bäri",
+      "ready": true
+    },
+    "gp-dygy-ucin": {
+      "unit": "b1-u08",
+      "label": "Because: -dYgY üçin",
+      "ready": true
+    },
+    "gp-an-badyna": {
+      "unit": "b1-u08",
+      "label": "As soon as: -An badyna",
+      "ready": true
+    },
+    "gp-reduplicated": {
+      "unit": "b1-u08",
+      "label": "Again and again: converbs said twice",
+      "ready": true
+    },
+    "gp-yp-helpers": {
+      "unit": "b1-u08",
+      "label": "Helper verbs after -(Y)p: try, for someone, for yourself, ready, at once",
+      "ready": true
+    },
+    "gp-conditional-sa": {
+      "unit": "b1-u09",
+      "label": "If: -sA with the past endings",
+      "ready": true
+    },
+    "gp-conditional-real": {
+      "unit": "b1-u09",
+      "label": "If it's so: bolsa after participles and nouns",
+      "ready": true
+    },
+    "gp-conditional-unreal": {
+      "unit": "b1-u09",
+      "label": "If I were you: things that are not so",
+      "ready": true
+    },
+    "gp-kaski": {
+      "unit": "b1-u09",
+      "label": "If only: kaşki",
+      "ready": true
+    },
+    "gp-passive": {
+      "unit": "b1-u10",
+      "label": "Was done: the passive -Yl, -l, -Yn, -n",
+      "ready": true
+    },
+    "gp-impersonal-passive": {
+      "unit": "b1-u10",
+      "label": "One does: the passive with no subject",
+      "ready": true
+    },
+    "gp-reflexive": {
+      "unit": "b1-u10",
+      "label": "To yourself: the reflexive -(Y)n",
+      "ready": true
+    },
+    "gp-oz": {
+      "unit": "b1-u10",
+      "label": "Self and own: öz",
+      "ready": true
+    },
+    "gp-causative": {
+      "unit": "b1-u11",
+      "label": "Make it happen: the causative",
+      "ready": true
+    },
+    "gp-causative-objects": {
+      "unit": "b1-u11",
+      "label": "Who does what: the person you make act",
+      "ready": true
+    },
+    "gp-reciprocal": {
+      "unit": "b1-u11",
+      "label": "Each other: the reciprocal -(Y)ş",
+      "ready": true
+    },
+    "gp-verb-derivation": {
+      "unit": "b1-u11",
+      "label": "Verbs from nouns and adjectives: -la, -laş, -lan, -al",
+      "ready": true
+    },
+    "gp-direct-speech": {
+      "unit": "b1-u12",
+      "label": "Quoting: diýmek and aýtmak",
+      "ready": true
+    },
+    "gp-diyip-quotative": {
+      "unit": "b1-u12",
+      "label": "diýip: saying, thinking, naming",
+      "ready": true
+    },
+    "gp-diyip-purpose": {
+      "unit": "b1-u12",
+      "label": "diýip for so that and because",
+      "ready": true
+    },
+    "gp-reported-speech": {
+      "unit": "b1-u12",
+      "label": "Reporting: -dygyny aýtdy, -magyny haýyş etdi",
+      "ready": true
+    }
+  },
+  "flashcards": {
+    "files": [
+      "flashcards/tm-fc-0001-0200.json",
+      "flashcards/tm-fc-0201-0400.json",
+      "flashcards/tm-fc-0401-0600.json",
+      "flashcards/tm-fc-0601-0800.json",
+      "flashcards/tm-fc-0801-1000.json"
+    ],
+    "count": 1000
+  },
+  "counts": {
+    "units": 36,
+    "lessons": 144,
+    "exercises": 1873,
+    "cards": 1000
+  }
+}

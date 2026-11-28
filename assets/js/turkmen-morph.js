@@ -1,0 +1,1003 @@
+/* © 2026 Grégoire Maillard. All rights reserved. Not open source: see /LICENSE.txt */
+/* Daily Turkmen: a rule-based morphology engine for written Turkmen, see turkmen/TM-PROJECT.md section 3 (TK-MORPH).
+
+   It builds written Turkmen words from a stem and suffixes, and conjugates the finite forms A1 and A2 teach
+   (turkmen/TM-CURRICULUM.md, coverage tables), positive, negative and question. scripts/turkmen/validate.mjs
+   checks the `conjugate` and `morph` exercises and the forms on the flashcards against it, and
+   scripts/turkmen/morph-test.mjs tests it on forms typed by hand. Loaded as a classic script it exposes
+   window.TKMMorph (and TKM.morph when turkmen.js has already run); in Node, require() returns the same object.
+   It loads nothing from the Turkish course (TM-PROJECT.md 2).
+
+     1. Letters and sounds: the nine vowels, front/back harmony, the rounding rule
+     2. Lexicon: voicing (long-vowel monosyllables, homographs, words that keep their consonant), vowel loss,
+        the verbs that voice t to d, loanwords whose rounding is unsure, pronouns
+     3. Words and suffixes: attach(), with linking vowels, buffer letters, voicing, vowel loss, e → ä
+     4. Nouns, pronouns and nominal predicates: plural, possessives, the five cases, -kY, the copula
+     5. Verbs: -ýAr, -dY, -jAk, -Ar, -mAlY, -(Y)p, the moods, the helpers bilmek, otyr, dur, ýatyr, ýör
+     6. Forms by name: the slugs that `conjugate` exercises use
+     7. Analysis: which suffixes a sequence of morph tiles stands for, or what the engine builds instead
+
+   Suffix notation (TM-CURRICULUM.md): A = a/e, Ä = a/ä (-ýÄr, -rÄk), Y = y/i (u/ü where the rounding rule
+   applies); (Y) and (A) are linking vowels used after a consonant, (n) and (s) buffer letters used after a
+   vowel. Persons are "men" … "olar" or 0 … 5. No dependencies, no build step. */
+(function (root, factory) {
+  var M = factory();
+  if (typeof module === "object" && module.exports) module.exports = M;
+  if (root && root.document) { root.TKMMorph = M; if (root.TKM) root.TKM.morph = M; }
+})(typeof window !== "undefined" ? window : globalThis, function () {
+  "use strict";
+
+  // ───────────────────────────── 1. letters and sounds ─────────────────────────────
+  // y is a vowel and ý a consonant; ä is the open front vowel. Back: a, o, u, y. Rounded: o, ö, u, ü.
+  var VOWELS = "aeäiyoöuü", BACK = "aouy", ROUND = "oöuü";
+  var PERSONS = ["men", "sen", "ol", "biz", "siz", "olar"];
+
+  // Turkmen has no dotted and dotless i pair, so plain toLowerCase() is right (TM-PROJECT.md 6.4)
+  function lower(s) { return String(s).normalize("NFC").toLowerCase(); }
+  function letters(s) { return lower(s).replace(/[^a-zäçňöşüýž]/g, ""); }
+  function isV(c) { return !!c && VOWELS.indexOf(c) >= 0; }
+  function lastV(s) { s = letters(s); for (var i = s.length - 1; i >= 0; i--) if (isV(s[i])) return s[i]; return null; }
+  function syllables(s) { return (letters(s).match(/[aeäiyoöuü]/g) || []).length; }
+  function front(v) { return BACK.indexOf(v) < 0; }
+  // A: a after a back vowel, e after a front one; Y: y or i, rounded later by the rounding rule
+  function harmA(v) { return v && !front(v) ? "a" : "e"; }
+  function harmY(v) { return v && !front(v) ? "y" : "i"; }
+  function harmAe(v) { return v && !front(v) ? "a" : "ä"; }      // Ä: a or ä, in -ýÄr (gelýär) and -rÄk (kiçiräk)
+  function roundV(c) { return c === "y" ? "u" : c === "i" ? "ü" : c; }
+  function unroundV(c) { return c === "u" ? "y" : c === "ü" ? "i" : c; }
+  function dots(s) { return new Array(s.length + 1).join("."); }
+  function lastWord(s) { var a = String(s).trim().split(/\s+/); return a[a.length - 1]; }
+  function personIndex(p) { return typeof p === "number" ? (p >= 0 && p < 6 ? p : -1) : PERSONS.indexOf(p); }
+
+  // The rounding rule (gp-harmony-rounding; TM-CURRICULUM.md, open question 1). A high vowel that a suffix brings,
+  // or a stem's final y or i once a suffix follows it, is u or ü when it is the vowel of the second syllable and the
+  // first syllable has o, ö, u or ü, unless it is the last letter of the word: gözüm, öýüne, boldum, bolup, gowurak,
+  // but gözi, ogly, boldy, gowy. From the third syllable on it is y or i: ýurdumyz, öýümiz, bolupdyr, okuwçy.
+  // The question particle -mY is written attached and counts as part of the word (gowumy), but its own vowel
+  // never rounds (ýokmydy). Stem vowels are spelt as they are (uzyn, otyr).
+
+  // ───────────────────────────── 2. lexicon ─────────────────────────────
+  // Every list is about the written standard. Add words here (with a test) when the validator finds a gap.
+  var LEX = {
+    // one-syllable words whose final k, p, ç or t voices before a vowel because their vowel is long (adym, ýadyma,
+    // ýurdumyz, dördünji, gögümtik); other one-syllable words keep it (atym "my horse", saçym, topy)
+    // güýç: güýji in print ("romanlaryň özüne çekiji güýji", science.gov.tm, FC-2)
+    voice: { "ýat": "ýad", "ýurt": "ýurd", "dört": "dörd", "gök": "gög", "güýç": "güýj" },
+    // the same spelling for a long-vowel word and a short one: sense 1, 2 as in scripts/turkmen/tm-wordlist.tsv
+    homographs: { at: [["name", "ad"], ["horse", null]], ot: [["fire", "od"], ["grass", null]] },
+    // words of two or more syllables in -t voice only from this list (Aşgabady, umydy); most keep it (döwleti,
+    // jemgyýeti, suraty). Words of two or more syllables in -k, -p, -ç voice (kitaby, çöregi, agajy) unless in keep.
+    // sagat: "sagat - sagady" in the explanatory dictionary's spelling note (enedilim.com), sagadyň, sagada (A1-4)
+    // FC-4: maksat (maksadym in b1-u04's vocab; "oýnuň maksady", FC-2's source) and sowgat (sowgady, sowgadyny in
+    // a1-u12 to b1-u12's lessons and guides)
+    tVoice: ["aşgabat", "umyt", "ýigit", "sagat", "maksat", "sowgat"],
+    keep: ["tarap"],
+    // vowel loss before a vowel: ogly, burnum, agzy, göwnüm
+    drop: {
+      ogul: "ogl", burun: "burn", agyz: "agz", "boýun": "boýn", garyn: "garn", "göwün": "göwn", "köňül": "köňl",
+      "ömür": "ömr", "döwür": "döwr", ylym: "ylm", nesil: "nesl", sabyr: "sabr", bagyr: "bagr",
+      // FC-2: uruş, "Beýik Watançylyk urşy", "urşunda" (Wikipedia, a medal's name); oýun, "oýnuň maksady" (a game page)
+      "uruş": "urş", "oýun": "oýn",
+      // FC-4: deňiz, "Hazar deňzi" (TM-PROJECT.md 7.5), deňzine, deňziniň in the lessons and interludes
+      "deňiz": "deňz"
+    },
+    // FC-4: verb stems that lose their second vowel before a vowel only (not before -ýAr, not before a consonant):
+    // dogul- "to be born": doglan in a1-u11 and b1-u05 (doglan gün, doglan ýer), so doglar, doglup; dogulýar, doguldy
+    verbDrop: { dogul: "dogl" },
+    // the closed list of verbs whose final t becomes d before a vowel and before -ýAr (gidýär, gidip, gider, but
+    // gitdi, gitjek); every other verb keeps its consonant (satýar, tutup, çykar). Compounds follow their last word.
+    verbSoft: { git: "gid", et: "ed", "aýt": "aýd", "gaýt": "gaýd", seret: "sered", "eşit": "eşid", "äkit": "äkid", "öýt": "öýd",
+      "öwret": "öwred",     // öwredýär "teaches" (in print, science.gov.tm), öwretmeli (A1-2)
+      // FC-3: ugratmak "to send, to see off": "ugradyp biljekdigini" (TRT Türkmen), "ugradyp bilmeýäris" and
+      // "bellik ugradyň" (infotrade.gov.tm), "ugradýarlar", "ugradypdyr" (folk tales); "ugratdy" before a consonant
+      "ugrat": "ugrad" },
+    // one-syllable loanwords: the rounding rule gives stoluň, the spelling stolyň is also accepted (open question 1)
+    loanRound: ["stol", "sport", "klub", "tort", "kod", "gol", "port", "post", "front", "kort", "forum"],
+    // the posture verbs that make the progressive after -(Y)p, in the form they take endings (otyryn, durun)
+    posture: { otyr: "otyr", dur: "dur", "ýatyr": "ýatyr", "ýör": "ýör" },
+    // the same four verbs have a present of their own, the "concrete present" (A2-4): otyryn, durun, ýatyrsyň, ýörüs.
+    // Wikipedia's Turkmen grammar tabulates it in every person (otyryn … otyrlar, durun, ýatyryn, ýörün); the
+    // grammar pages of the explanatory dictionary (enedilim.com, "Işlikler") give "Awtobus duralgada du:r", "Jigim
+    // sallançakda ýaty:r", "durun, dursuňyz". Keyed by verb stem: oturmak, durmak, ýatmak, ýöremek (or ýörmek).
+    postureVerb: { otur: "otyr", dur: "dur", "ýat": "ýatyr", "ýöre": "ýör", "ýör": "ýör" },
+    // B1 (QA-TK-1). Causatives that don't follow the rule (-t after a vowel, -dYr after a consonant): the curriculum's
+    // görkezmek, getirmek, geçirmek, çykarmak (b1-u11); turuzmak, gorkuzmak, ýatyrmak, öwretmek in D. Gray, "A Short
+    // Descriptive Grammar of Turkmen" (SIL, 2011), which gives -dyr, -t, -yr, -yz as the suffixes
+    causative: { "gör": "görkez", gel: "getir", "geç": "geçir", "çyk": "çykar", tur: "turuz", gork: "gorkuz", "ýat": "ýatyr",
+      "öwren": "öwret", "iç": "içir", "düş": "düşür", "uç": "uçur", bit: "bitir", "gaýt": "gaýtar", "ýet": "ýetir",
+      // B1-5: duruzmak "to stop (someone, a taxi)": "Merkeze gitmek üçin taksini duruzdym" (SIL Turkmen-English
+      // dictionary, webonary.work), "duruzmak to make a stop, to stop" (Peace Corps Turkmen-English dictionary, 1999)
+      dur: "duruz" },
+    // reciprocals whose stem changes: tanamak → tanyşmak (b1-u11)
+    reciprocal: { tana: "tanyş" }
+  };
+  // Pronouns and demonstratives: their case forms are written out (maňa, oňa, muny), cut where the endings start.
+  var PRON = {
+    men: { acc: ["men", "i"], dat: ["ma", "ň", "a"], loc: ["men", "de"], abl: ["men", "den"], gen: ["men", "iň"] },
+    sen: { acc: ["sen", "i"], dat: ["sa", "ň", "a"], loc: ["sen", "de"], abl: ["sen", "den"], gen: ["sen", "iň"] },
+    ol: { acc: ["o", "n", "y"], dat: ["o", "ň", "a"], loc: ["o", "n", "da"], abl: ["o", "n", "dan"], gen: ["o", "n", "uň"], pl: ["o", "lar"] },
+    biz: { acc: ["biz", "i"], dat: ["biz", "e"], loc: ["biz", "de"], abl: ["biz", "den"], gen: ["biz", "iň"] },
+    siz: { acc: ["siz", "i"], dat: ["siz", "e"], loc: ["siz", "de"], abl: ["siz", "den"], gen: ["siz", "iň"] },
+    bu: { acc: ["mu", "n", "y"], dat: ["mu", "ň", "a"], loc: ["mu", "n", "da"], abl: ["mu", "n", "dan"], gen: ["mu", "n", "uň"], pl: ["bu", "lar"] },
+    "şu": { acc: ["şu", "n", "y"], dat: ["şu", "ň", "a"], loc: ["şu", "n", "da"], abl: ["şu", "n", "dan"], gen: ["şu", "n", "uň"], pl: ["şu", "lar"] },
+    "şol": { acc: ["şo", "n", "y"], dat: ["şo", "ň", "a"], loc: ["şo", "n", "da"], abl: ["şo", "n", "dan"], gen: ["şo", "n", "uň"], pl: ["şo", "lar"] }
+  };
+
+  function senseIndex(list, sense) {
+    if (typeof sense === "number") return sense >= 1 && sense <= list.length ? sense - 1 : 0;
+    for (var i = 0; i < list.length; i++) if (list[i][0] === sense) return i;
+    return 0;
+  }
+  function voiced(s) { var r = { p: "b", "ç": "j", t: "d", k: "g" }[s.slice(-1)]; return r ? s.slice(0, -1) + r : undefined; }
+  // the stem a noun uses before a vowel, or undefined when it doesn't change
+  function nounLex(stem, sense) {
+    var k = lower(stem), lex = {}, alt;
+    if (LEX.drop[k]) alt = LEX.drop[k];
+    else if (LEX.homographs[k]) { var h = LEX.homographs[k], i = senseIndex(h, sense); alt = h[i][1] || undefined; lex.sense = i + 1; }
+    else if (LEX.voice[k]) alt = LEX.voice[k];
+    else if (syllables(k) > 1 && LEX.keep.indexOf(k) < 0 && (k.slice(-1) !== "t" || LEX.tVoice.indexOf(k) >= 0)) alt = voiced(k);
+    if (alt) lex.alt = stem.charAt(0) + alt.slice(1);      // keep a capital: Aşgabat → Aşgabady
+    if (LEX.loanRound.indexOf(k) >= 0) lex.loanRound = true;
+    if (PRON[k]) lex.pron = k;
+    return lex;
+  }
+  // B1-5: a verb stem of two or more syllables that ends in t voices it like the verbs of LEX.verbSoft, before a
+  // vowel and before -ýAr. Every such stem found in print does: the causatives in -t (okadylýar, gowşadýar, daraldýar,
+  // berkidýär, beýgeldýär, galgadýar, boşadýarlar, döredýän; ugradýar and öwredýär were already listed) and seret-,
+  // eşit-, äkit-. One-syllable stems keep their t unless they are listed (satýar, tutýar, ýetýär, but gidýär).
+  function verbLex(stem) {
+    var k = lower(stem), lex = {};
+    if (LEX.verbSoft[k]) lex.alt = LEX.verbSoft[k];
+    else if (LEX.verbDrop[k]) { lex.alt = LEX.verbDrop[k]; lex.vowelOnly = true; }
+    else if (syllables(k) > 1 && /t$/.test(k)) lex.alt = stem.slice(0, -1) + "d";
+    return lex;
+  }
+
+  // ───────────────────────────── 3. words and suffixes ─────────────────────────────
+  // A word is a list of parts (stem, buffer letters, suffixes), so it can be shown segmented: öý|üm|iz.
+  // Each part keeps a mask that marks the vowels the rounding rule may change ("r"); text() applies the rule.
+  // pre holds the words before the inflected one (pikir in "pikir edýärin"), which never change.
+  function mk(stem, o) {
+    o = o || {};
+    var m = dots(stem);
+    if ((o.cat || "n") === "n" && /[yi]$/.test(lower(stem))) m = m.slice(0, -1) + "r";   // gowy → gowurak
+    return { pre: o.pre || "", parts: [{ t: stem, k: "stem", m: m }], cat: o.cat || "n", lemma: o.lemma || stem,
+             lex: o.lex || {}, proper: !!o.proper, f: {} };
+  }
+  function clone(w) {
+    var f = {}, k;
+    for (k in w.f) f[k] = w.f[k];
+    return { pre: w.pre, parts: w.parts.map(function (p) { return { t: p.t, k: p.k, id: p.id, m: p.m, soft: p.soft, softY: p.softY }; }),
+             cat: w.cat, lemma: w.lemma, lex: w.lex, proper: w.proper, f: f };
+  }
+  function lastPart(w) { return w.parts[w.parts.length - 1]; }
+  function rootOnly(w) { return w.parts.length === 1; }
+  function lit(s) { return mk(s, { cat: "x", lemma: s }); }   // a word that takes no suffix here (däl, bilen)
+
+  // The letters of each part after the rounding rule. o.clitic false: the rule ends the word before -mY;
+  // o.noRound: a loanword of LEX.loanRound, spelt without rounding.
+  function renderParts(w, o) {
+    o = o || {};
+    var s = "", m = "", q = -1, i;
+    for (i = 0; i < w.parts.length; i++) {
+      var p = w.parts[i];
+      if (p.k === "q" && q < 0) q = s.length;
+      s += p.t; m += p.m || dots(p.t);
+    }
+    var low = lower(s), end = o.clitic === false && q >= 0 ? q : s.length, n = 0, fv = null, out = "";
+    var noRound = o.noRound && w.lex.loanRound;
+    for (i = 0; i < s.length; i++) {
+      var c = s.charAt(i), lc = low.charAt(i);
+      if (isV(lc)) {
+        n++;
+        if (n === 1) fv = lc;
+        if (m.charAt(i) === "r") {
+          var t = n === 2 && ROUND.indexOf(fv) >= 0 && i < end - 1 && !noRound ? roundV(lc) : unroundV(lc);
+          c = c === lc ? t : t.toUpperCase();
+        }
+      }
+      out += c;
+    }
+    var res = [], k = 0;
+    for (i = 0; i < w.parts.length; i++) { res.push(out.slice(k, k + w.parts[i].t.length)); k += w.parts[i].t.length; }
+    return res;
+  }
+  function text(w, o) { return w.pre + renderParts(w, o).join(""); }
+  function segOf(w, o) { return w.pre + renderParts(w, o).filter(Boolean).join("|"); }
+  function body(w) { return text(w).slice(w.pre.length); }
+
+  // A vowel is about to follow: the stem changes if it can (kitap → kitab, ogul → ogl, git → gid; -lYk → -lYg).
+  // Verbs of LEX.verbSoft also change before -ýAr (gidýär).
+  function alternate(w, vfirst) {
+    var p = lastPart(w);
+    if (p.k === "stem") {
+      if (!w.lex.alt || p.t !== w.lemma || ((w.cat !== "v" || w.lex.vowelOnly) && !vfirst)) return;
+      p.t = w.lex.alt; p.m = dots(p.t);
+    } else if (p.soft && (vfirst || (p.softY && w.cat === "v"))) {      // softY: the causative -t, also before -ýAr
+      var r = voiced(p.t);
+      if (r) p.t = r;
+    }
+  }
+  // e → ä: eje → ejä, işle → işlä, gelme → gelmä (TM-CURRICULUM.md, open question 5)
+  function eToA(w) {
+    var p = lastPart(w), c = p.t.slice(-1);
+    if (c === "e") p.t = p.t.slice(0, -1) + "ä";
+    else if (c === "E") p.t = p.t.slice(0, -1) + "Ä";
+  }
+
+  // Attach one suffix written in the notation above. o: { id, cat, k, ea, keepE, soft }
+  //   ea: a final e becomes ä when the suffix joins the word with its linking vowel or buffer n (ejäm, nämäni);
+  //       a linking (A) always makes it ä (işlär, işläýin). keepE: don't (the spelling ejem, accepted beside ejäm).
+  function attach(w0, tpl, o) {
+    o = o || {};
+    var w = clone(w0), lead = "", bodyT = tpl, mm = /^\((.)\)/.exec(tpl);
+    if (mm) { lead = mm[1]; bodyT = tpl.slice(3); }
+    var L = letters(body(w)), endsV = isV(L.slice(-1)), buf = "", link = "";
+    if (lead === "Y" || lead === "A") {
+      if (!endsV) link = lead;
+      else if ((lead === "A" || o.ea) && !o.keepE) eToA(w);
+    } else if (lead) {
+      if (endsV) { buf = lead; if (o.ea && !o.keepE) eToA(w); }
+    } else if (o.ea && endsV && !o.keepE) eToA(w);                    // öýde + ki → öýdäki
+    var first = (link || bodyT).charAt(0);
+    var vfirst = !buf && (first === "A" || first === "Ä" || first === "Y" || isV(first));
+    if (!endsV && (vfirst || first === "ý")) alternate(w, vfirst);
+    var v = lastV(body(w)), out = "", mask = "", s = link + bodyT;
+    for (var i = 0; i < s.length; i++) {
+      var ch = s.charAt(i), c, r = ".";
+      if (ch === "A") { c = harmA(v); v = c; }
+      else if (ch === "Ä") { c = harmAe(v); v = c; }
+      else if (ch === "Y") { c = harmY(v); v = c; if (o.k !== "q") r = "r"; }
+      else { c = ch; if (isV(c)) v = c; }
+      out += c; mask += r;
+    }
+    if (buf) w.parts.push({ t: buf, k: "buf", m: "." });
+    w.parts.push({ t: out, k: o.k || "suf", id: o.id || tpl, m: mask, soft: !!o.soft, softY: !!o.softY });
+    if (o.cat) w.cat = o.cat;
+    return w;
+  }
+
+  // ───────────────────────────── 4. nouns, pronouns, nominal predicates ─────────────────────────────
+  var POSS = ["(Y)m", "(Y)ň", "(s)Y", "(Y)mYz", "(Y)ňYz", "(s)Y"];
+
+  function mkNoun(base, o) {
+    var ws = String(base).trim().split(/\s+/), last = ws.pop(), pre = ws.length ? ws.join(" ") + " " : "";
+    var proper = /^[A-ZÄÇŇÖŞÜÝŽ]/.test(last);
+    return mk(last, { pre: pre, cat: "n", lemma: last, lex: nounLex(last, o && o.sense), proper: proper });
+  }
+  function fromParts(w, list, id) {   // a pronoun form written out: o|n|y, ma|ň|a
+    var x = clone(w);
+    x.parts = list.map(function (t, i) { return { t: t, k: i === 0 ? "stem" : i === list.length - 1 ? "suf" : "buf", id: i === list.length - 1 ? id : null, m: dots(t) }; });
+    x.f = {}; x.cat = "k";
+    return x;
+  }
+  function nbuf(w) { var x = clone(w); x.parts.push({ t: "n", k: "buf", m: "." }); return x; }   // the pronominal n: öýüne, kitabynda
+  function plural(w) {
+    if (rootOnly(w) && w.lex.pron && PRON[w.lex.pron].pl) { var x = fromParts(w, PRON[w.lex.pron].pl, "PL"); x.cat = "n"; return x; }
+    if (w.f.poss) throw new Error("the plural comes before the possessive");
+    var y = attach(w, "lAr", { id: "PL" }); y.f = {}; return y;
+  }
+  // possessive p (0 … 5); o.lary: -lArY for olar (kitaplary); o.keepE: ejem beside ejäm
+  function poss(w, p, o) {
+    o = o || {};
+    if (w.f.poss) throw new Error("a word takes one possessive");
+    var x = p === 5 && o.lary ? attach(w, "lArY", { id: "POSS6", cat: "n" }) : attach(w, POSS[p], { id: "POSS" + (p + 1), cat: "n", ea: p !== 2 && p !== 5, keepE: o.keepE });   // ejäm, but ejesi
+    x.f = { p3: p === 2 || p === 5, poss: true };
+    return x;
+  }
+  // the dative after a vowel fuses with it: Mary → Mara, okuwçy → okuwça, eje → ejä, kişi → kişä, oba → oba
+  function fuseDat(w) {
+    var x = clone(w), p = lastPart(x), c = lower(p.t.slice(-1));
+    p.t = p.t.slice(0, -1); p.m = p.m.slice(0, -1);
+    x.parts.push({ t: front(c) ? "ä" : "a", k: "suf", id: "DAT", m: "." });
+    return x;
+  }
+  function addCase(w, c) {
+    var x;
+    if (rootOnly(w) && w.lex.pron && PRON[w.lex.pron][c]) x = fromParts(w, PRON[w.lex.pron][c], c.toUpperCase());
+    else if (c === "acc") x = attach(w, "(n)Y", { id: "ACC", ea: true });
+    else if (c === "gen") x = attach(w, "(n)Yň", { id: "GEN", ea: true });
+    else if (w.f.p3) x = attach(nbuf(w), c === "dat" ? "A" : c === "loc" ? "dA" : "dAn", { id: c.toUpperCase() });
+    else if (c === "dat" && lastPart(w).id === "MAK") {                 // the verbal noun: okamaga, gelmäge (B1)
+      x = clone(w); x.parts.pop(); x = attach(x, "mÄgA", { id: "MAK-DAT" });
+    }
+    else if (c === "dat") x = isV(letters(body(w)).slice(-1)) ? fuseDat(w) : attach(w, "A", { id: "DAT" });
+    else if (c === "loc") x = attach(w, "dA", { id: "LOC" });
+    else if (c === "abl") x = attach(w, "dAn", { id: "ABL" });
+    else throw new Error("unknown case " + c);
+    x.cat = "k"; x.f = { "case": c };
+    return x;
+  }
+  // -kY: öýdäki, Aşgabatdaky, şu günki, meniňki; what follows takes the pronominal n like a third-person possessive
+  function ky(w) { var x = attach(w, "kY", { id: "KY", ea: true, cat: "n" }); x.f = { p3: true }; return x; }
+  // decline("kitap", { pl, poss: "men", case: "loc", ky, sense, keepE }) → kitaplarymda
+  function decline(base, o) {
+    o = o || {};
+    var w = typeof base === "string" ? mkNoun(base, o) : base;
+    if (o.pl) w = plural(w);
+    if (o.poss != null) w = poss(w, personIndex(o.poss), o);
+    if (o["case"]) w = addCase(w, o["case"]);
+    if (o.ky) w = ky(w);
+    return w;
+  }
+
+  // Personal endings: E1 after "to be", -ýAr and -Ar (talybyn, gelýärin, gelerin); E2 after -dY (geldim, talypdym).
+  var E1 = ["(Y)n", "sYň", "", "(Y)s", "sYňYz", "lAr"];
+  var E2 = ["m", "ň", "", "k", "ňYz", "lAr"];
+  function person(w, set, p) { return set[p] ? attach(w, set[p], { id: set[p] === "lAr" ? "PL" : "P" + (p + 1), cat: "f" }) : w; }
+  function Q(w) { return attach(w, "mY", { id: "Q", k: "q" }); }   // the question particle, written attached
+  // E1 with the question particle: gelýärinmi, gelýärsiňmi (or gelermisiň, gelýärmiň), gelýärmi, gelýärsiňizmi (or
+  // gelýärmisiňiz). For sen the particle before the full ending is in print for -Ar (bilermisiň in Tyson and Clark's
+  // Peace Corps manual, 1993; A2-2, open question 3), as for siz and the copula (talypmysyň); then the short -mYň.
+  function e1(w, p, q) {
+    if (!q) return [[person(w, E1, p)]];
+    var out = [[Q(person(w, E1, p))]];
+    if (p === 1) out.push([attach(Q(w), "sYň", { id: "P2" })], [attach(Q(w), "ň", { id: "P2" })]);
+    if (p === 4) out.push([attach(Q(w), "sYňYz", { id: "P5" })]);
+    return out;
+  }
+  function e2(w, p, q) { var x = person(w, E2, p); return [[q ? Q(x) : x]]; }
+
+  // Nominal predicates: copula("talyp", { tense: "pres" | "past" | "dyr", neg, q, p }). A predicate ending in
+  // "däl" is negative already; bar and ýok swap for the negative. Returns variants (arrays of words), the usual first.
+  // Present (open question 2, settled in A1-1): the zero form first in every person (Men talyp); then -dYr with
+  // the personal ending, the formal written form (talypdyryn, talypdyrsyň, talypdyr, talypdyrys, talypdyrsyňyz,
+  // talypdyrlar; minnetdardyryn, minnetdardyrys in print); last, the endings without -dYr (talybyn, talypsyň,
+  // talybys, talypsyňyz, talyplar), which no source reached shows and the course doesn't teach. After a vowel
+  // the bare first-person endings are left out: öýden and öýdes would read as other words.
+  function copula(pred, spec) {
+    var p = personIndex(spec.p), q = !!spec.q, neg = !!spec.neg, t = spec.tense || "pres", out = [];
+    if (p < 0) return null;
+    var ws = String(pred).trim().split(/\s+/);
+    if (ws.length > 1 && ws[ws.length - 1] === "däl") { ws.pop(); neg = true; }
+    var head = mkNoun(ws.join(" ")), hl = lower(ws.join(" "));
+    if (neg && (hl === "bar" || hl === "ýok")) { head = mkNoun(hl === "bar" ? "ýok" : "bar"); neg = false; }
+    var X = neg ? mkNoun(text(head) + " däl") : head;
+    var vowelEnd = isV(letters(body(X)).slice(-1));
+    var dyrP = function () { return person(attach(X, "dYr", { id: "DYR", cat: "f" }), E1, p); };   // talypdyryn … talypdyrlar
+    if (t === "pres") {
+      // Questions (settled in A1-2): the zero form with -mY first in every person (Sen talypmy?, dälmi?); with a
+      // second-person ending the particle comes first, talypmysyň, talypmysyňyz (gurgunmysyňyz in the Five Colleges
+      // Turkmen glossary; alypmysyň, alypmysyňyz beside alypdyrynmy, alypdyrysmy in the SIL grammar), then the
+      // colloquial talypmyň; the bare ending before the particle (talypsyňmy) last, untaught. First persons: the
+      // formal -dYr with the ending (talypdyrynmy), then the bare ending, not after a vowel (no öýdenmi).
+      if (q) {
+        if (p === 2) return [[Q(X)]];
+        if (p === 5) return [[Q(X)], [Q(person(X, E1, 5))]];
+        if (p === 1 || p === 4) {
+          out = [[Q(X)], [attach(Q(X), E1[p], { id: "P" + (p + 1) })]];              // talypmy, talypmysyň(yz)
+          if (p === 1) out.push([attach(Q(X), "ň", { id: "P2" })]);                   // talypmyň
+          out.push([Q(person(X, E1, p))]);                                            // talypsyňmy
+          return out;
+        }
+        out = [[Q(X)], [Q(dyrP())]];                                                  // talypmy, talypdyrynmy
+        if (!vowelEnd) out.push([Q(person(X, E1, p))]);                               // talybynmy (not öýdenmi)
+        return out;
+      }
+      if (p === 2) return [[X], [dyrP()]];                                           // talyp, talypdyr
+      if (p === 5) return [[X], [person(X, E1, 5)], [dyrP()]];                       // talyp, talyplar, talypdyrlar
+      out = [[X], [dyrP()]];                                                         // talyp, talypdyryn
+      if (!(vowelEnd && (p === 0 || p === 3))) out.push([person(X, E1, p)]);         // talybyn (not öýden: "from home")
+      // däl with a second-person ending is in print (Sen … dälsiň, the SIL dictionary under diň): before däldirsiň
+      if (neg && (p === 1 || p === 4)) out = [out[0], out[2], out[1]];
+      return out;
+    }
+    if (t === "dyr") {                                                               // first and second persons: positive only
+      if (p !== 2 && p !== 5 && (neg || q)) return null;
+      var d = attach(X, "dYr", { id: "DYR", cat: "f" });
+      if (q) return [[Q(p === 5 ? attach(d, "lAr", { id: "PL" }) : d)]];
+      return p === 5 ? [[attach(d, "lAr", { id: "PL" })], [attach(attach(X, "lAr", { id: "PL" }), "dYr", { id: "DYR" })]] : [[dyrP()]];
+    }
+    if (t === "past") {                                                              // talypdym, öýdedik, bardy, däldi
+      var dy = function (w) { return attach(w, "dY", { id: "PCOP", cat: "g" }); };
+      if (q) {                                                                       // talypmydyň
+        if (p === 5) return [[attach(dy(Q(X)), "lAr", { id: "PL" })], [dy(Q(attach(X, "lAr", { id: "PL" })))]];
+        return [[person(dy(Q(X)), E2, p)]];
+      }
+      if (p === 5) return [[attach(dy(X), "lAr", { id: "PL" })], [dy(attach(X, "lAr", { id: "PL" }))]];
+      return [[person(dy(X), E2, p)]];
+    }
+    if (t === "cond") {                                                              // öýde bolsam, talyp däl bolsaň (b1-u09)
+      if (q) return null;
+      return [[X, bolsa(p)]];
+    }
+    throw new Error("unknown tense " + t);
+  }
+
+  // ───────────────────────────── 5. verbs ─────────────────────────────
+  // mkVerb("gelmek"), mkVerb("gel-"), mkVerb("pikir etmek"): only the last word is conjugated.
+  function mkVerb(base) {
+    var ws = String(base).trim().split(/\s+/), last = ws.pop(), pre = ws.length ? ws.join(" ") + " " : "";
+    var stem = /m[ae]k$/.test(last) ? last.slice(0, -3) : last.replace(/-$/, "");
+    return mk(stem, { pre: pre, cat: "v", lemma: stem, lex: verbLex(stem) });
+  }
+  function isVerbBase(b) { return /m[ae]k$/.test(lastWord(String(b).trim())); }
+  function negate(w) { return attach(w, "mA", { id: "NEG", cat: "v" }); }
+  function converb(w) { return attach(w, "(Y)p", { id: "CVB", cat: "c", ea: true }); }   // gelip, okap, görüp, işläp, gidip
+
+  // ── B1 (QA-TK-1): compound tenses, participles, verbal nouns, voices ──
+  // The past copula -dY with the past endings after a verb form: gelýärdim, gelerdim, geljekdim, gelmelidim, gelipdim.
+  // The question particle comes before -dY, as with nouns (talypmydyň, A2-1): bilýärmidiň? (the Turkmen Bible, 2002
+  // and 2017, Matthew 25:26 and Luke 19:22). The particle after the ending (bilýärdiňmi) is not built: no reliable source.
+  function pcop(x, p, q) { return person(attach(q ? Q(x) : x, "dY", { id: "PCOP", cat: "g" }), E2, p); }
+  // The past endings after a consonant (eken): ekenim, ekeniň, eken, ekenik, ekeniňiz, ekenler; "almaly eken(im)" in
+  // D. Gray, "A Short Descriptive Grammar of Turkmen" (SIL, 2011), "bermeli ekeniň-dä" in the Turkmen Bible
+  var E2C = ["(Y)m", "(Y)ň", "", "(Y)k", "(Y)ňYz", "lAr"];
+  // the negative -(Y)p (and the stem of -mAndY, -mAndYr): gelmän, okaman, işlemän
+  function negConverb(w0) { return attach(negate(w0), "(A)n", { id: "MAN", cat: "c" }); }
+  // Participles (b1-u05, b1-u06): -ýAn (gelýän; negative gelmeýän), -An (gelen, işlän, giden; negative gelmedik),
+  // -jAk (geljek; negative gelmejek), -mAlY (gelmeli; negative gelmeli däl, gelmemeli). Gray (2011) gives alýan, almaýan;
+  // alan, almadyk; aljak, almajak. Each returns variants, each a list of words.
+  function part(w0, type, neg) {
+    switch (type) {
+      case "yan": return [[attach(neg ? negate(w0) : w0, "ýÄn", { id: "YAN", cat: "n" })]];
+      case "an": return [[neg ? attach(negate(w0), "dYk", { id: "DYK", cat: "n", soft: true }) : attach(w0, "(A)n", { id: "AN", cat: "n" })]];
+      case "jak": return [[attach(neg ? negate(w0) : w0, "jAk", { id: "FUT", cat: "n", soft: true })]];
+      case "maly":
+        var x = attach(w0, "mAlY", { id: "NEC", cat: "n" });
+        return neg ? [[x, lit("däl")], [attach(negate(w0), "mAlY", { id: "NEC", cat: "n" })]] : [[x]];
+      default: throw new Error("unknown participle " + type);
+    }
+  }
+  function bolsa(p) { return person(attach(mkVerb("bolmak"), "sA", { id: "COND", cat: "g" }), E2, p); }   // bolsam … bolsalar
+  // Voices and verbs made from nouns (b1-u10, b1-u11). Passive: -Yl after a consonant, -l after a vowel (Gray 2011:
+  // aýtmak → aýdylmak, okamak → okalmak), -Yn after l (alynmak, gelinmek, bilinmek) and -n after l and a vowel
+  // (arassalanmak, taýýarlanmak, işlenmek, gürlenmek: B1-4, from print: arassalanan, taýýarlanan); reflexive -(Y)n (ýuwunmak,
+  // geýinmek, taýýarlanmak); reciprocal -(Y)ş (görüşmek, alyşmak, gürleşmek); causative -t after a vowel (okatmak,
+  // işletmek), -dYr after a consonant (ýazdyrmak, kesdirmek, güldürmek), or a stem of LEX.causative (görkezmek).
+  function voice(w0, kind) {
+    var L = letters(body(w0)), endsV = isV(L.slice(-1)), k = lower(w0.lemma), w;
+    switch (kind) {
+      case "pass": w = endsV ? attach(w0, /l.$/.test(L) ? "n" : "l", { id: "PASS" }) : /l$/.test(L) ? attach(w0, "(Y)n", { id: "PASS" }) : attach(w0, "(Y)l", { id: "PASS" }); break;
+      case "refl": w = attach(w0, "(Y)n", { id: "REFL" }); break;
+      case "recip":
+        if (rootOnly(w0) && LEX.reciprocal[k]) { w = clone(w0); w.parts = [{ t: LEX.reciprocal[k], k: "stem", m: dots(LEX.reciprocal[k]) }]; break; }
+        w = attach(w0, "(Y)ş", { id: "RECIP" }); break;
+      case "caus":
+        if (rootOnly(w0) && LEX.causative[k]) { var c = LEX.causative[k]; w = clone(w0); w.parts = [{ t: w0.parts[0].t.slice(0, 1) + c.slice(1), k: "stem", m: dots(c) }]; break; }
+        // -t after a vowel, and (B1-5) after a stem of two or more syllables that ends in l or r: azaltmak,
+        // bejertmek, dikeltmek, beýgeltmek (SIL dictionary), köpeltmek, kiçeltmek, ulaltmak (Peace Corps dictionary,
+        // 1999), daraldýar (science.gov.tm); -dYr after any other consonant. The -t voices before a vowel and -ýAr.
+        w = endsV || (syllables(L) > 1 && /[lr]$/.test(L)) ? attach(w0, "t", { id: "CAUS", soft: true, softY: true }) : attach(w0, "dYr", { id: "CAUS" }); break;
+      default: throw new Error("unknown voice " + kind);
+    }
+    w.cat = "v"; w.lemma = body(w); w.lex = rootOnly(w) ? verbLex(w.lemma) : {};
+    return w;
+  }
+  // the infinitive of a stem: voice("ýazmak", "pass") → ýazylmak
+  function infinitive(w) { return text(w) + (front(lastV(body(w))) ? "mek" : "mak"); }
+
+  // Finite forms. spec: { tense, neg, q, p, ability, aux }
+  //   tense: present (-ýAr), past (-dY), future (-jAk, no ending), aorist (-Ar; negative -mAr, -mAz), necess (-mAlY,
+  //          no ending), imp (sen, siz), opt (men, biz), imp3 (ol, olar), prog (-(Y)p + aux otyr, dur, ýatyr, ýör),
+  //          ypdyr (-(Y)pdYr, ol and olar: the first look of a2-u02), posture (otyr, dur, ýatyr, ýör on their own:
+  //          the present of oturmak, durmak, ýatmak, ýöremek, a2-u11; no negative, which is -mAýAr: oturmaýar)
+  //   ability: -(Y)p bilmek, conjugated in tense present, aorist or past
+  // Returns variants (arrays of words), the usual one first, or null where the form doesn't exist.
+  function conj(base, spec) {
+    var p = personIndex(spec.p), neg = !!spec.neg, q = !!spec.q, t = spec.tense;
+    if (p < 0) return null;
+    var w0 = typeof base === "string" ? mkVerb(base) : base;
+    if (spec.ability) {
+      var cv = converb(w0), r = conj("bilmek", { tense: t, neg: neg, q: q, p: p });
+      return r && r.map(function (v) { return [cv].concat(v); });
+    }
+    var w = neg ? negate(w0) : w0, x;
+    switch (t) {
+      case "present": return e1(attach(w, "ýÄr", { id: "PRES", cat: "f" }), p, q);
+      case "past": return e2(attach(w, "dY", { id: "PAST", cat: "g" }), p, q);
+      case "future":                                                     // geljek; geljek däl; geljekmi; geljek dälmi
+        x = attach(w0, "jAk", { id: "FUT", cat: "n", soft: true });
+        if (!neg) return [[q ? Q(x) : x]];
+        return q ? [[x, Q(lit("däl"))]] : [[x, lit("däl")], [attach(negate(w0), "jAk", { id: "FUT", cat: "n", soft: true })]];
+      case "necess":                                                     // gelmeli; gelmeli däl; gelmelimi
+        x = attach(w0, "mAlY", { id: "NEC", cat: "n" });
+        if (!neg) return [[q ? Q(x) : x]];
+        return q ? [[x, Q(lit("däl"))]] : [[x, lit("däl")], [attach(negate(w0), "mAlY", { id: "NEC", cat: "n" })]];
+      case "aorist":
+        if (!neg) return e1(attach(w0, "(A)r", { id: "AOR", cat: "f" }), p, q);                 // gelerin, okar, işlär
+        if (p === 2 || p === 5) {                                                              // gelmez, gelmezler
+          x = attach(w0, "mAz", { id: "NAOR", cat: "f" });
+          if (p === 5) x = attach(x, "lAr", { id: "PL" });
+          return [[q ? Q(x) : x]];
+        }
+        return e1(attach(w0, "mAr", { id: "NAOR", cat: "f" }), p, q);                           // gelmerin, gelmersiň
+      case "imp":                                                         // gel, geliň (geliňiz); gelme, gelmäň
+        if (q) return null;
+        if (p === 1) return [[w]];
+        if (p === 4) return [[attach(w, "(Y)ň", { id: "IMP", cat: "x", ea: true })], [attach(w, "(Y)ňYz", { id: "IMP", cat: "x", ea: true })]];
+        return null;
+      case "opt":                                                         // geleýin, okaýyn, işläýin; geleli, geleliň
+        var o = p === 0 ? [attach(w, "(A)ýYn", { id: "OPT1", cat: "x" })]
+              : p === 3 ? [attach(w, "(A)lY", { id: "OPT4", cat: "x" }), attach(w, "(A)lYň", { id: "OPT4", cat: "x" })] : null;
+        return o && o.map(function (y) { return [q ? Q(y) : y]; });
+      case "imp3":                                                        // gelsin, gelsinler; gelmesin; gelsinmi
+        if (p !== 2 && p !== 5) return null;
+        x = attach(w, "sYn", { id: "IMP3", cat: "f" });
+        if (p === 5) x = attach(x, "lAr", { id: "PL" });
+        return [[q ? Q(x) : x]];
+      case "prog":                                                        // okap otyr, işläp ýörün, gelip durus
+        if (neg) return null;
+        var a = LEX.posture[spec.aux];
+        if (!a) throw new Error("unknown helper verb " + spec.aux);
+        var c = converb(w0), aw = mk(a, { cat: "f", lemma: a });
+        return e1(aw, p, q).map(function (v) { return [c].concat(v); });
+      case "posture":                                                     // otyryn, dursuň, ýatyr, ýörüs (A2-4)
+        if (neg) return null;
+        var pv = LEX.postureVerb[lower(w0.lemma)];
+        if (!pv || w0.pre) return null;
+        return e1(mk(pv, { cat: "f", lemma: pv }), p, q);
+      case "ypdyr":
+        // The full paradigm (b1-u03; open question 6, settled in QA-TK-1): -dYr with the type 1 endings, but none in the
+        // second persons: gelipdirin, gelipsiň, gelipdir, gelipdiris, gelipsiňiz, gelipdirler (or gelipdir); negative
+        // with -mAn: gelmändirin, gelmändirsiň, gelmändir, gelmändiris, gelmändirsiňiz, gelmändir(ler); the particle
+        // before a second-person ending: gelipmisiň, gelmänmisiň. The SIL grammar on webonary.work (alypdyryn, alypsyň,
+        // almandyrsyň, alypmysyň, almanmysyň, alypdyrynmy), D. Gray (SIL, 2011), Wiktionary's gelmek (gelipsiň, gelipsiňiz).
+        var st = neg ? negConverb(w0) : converb(w0);
+        if (p === 1 || p === 4) {
+          if (q) return [[attach(Q(st), E1[p], { id: "P" + (p + 1) })]];
+          if (!neg) return [[person(st, E1, p)]];
+        }
+        x = attach(st, "dYr", { id: "DYR", cat: "f" });
+        if (p === 5) { var pl = attach(x, "lAr", { id: "PL" }); return [[q ? Q(pl) : pl], [q ? Q(x) : x]]; }
+        x = person(x, E1, p);
+        return [[q ? Q(x) : x]];
+      // B1 compound tenses (b1-u01, b1-u02): the past copula -dY after -ýAr, -(Y)p, -Ar, -jAk, -mAlY
+      case "pastcont":                                                    // gelýärdim; gelmeýärdim; gelýärmidiň
+        return [[pcop(attach(w, "ýÄr", { id: "PRES", cat: "f" }), p, q)]];
+      case "pluperf":                                                     // gelipdim; gelmändim (Wikipedia, SIL); gelipmidiň
+        return [[pcop(neg ? negConverb(w0) : converb(w0), p, q)]];
+      case "pasthab":                                                     // gelerdim, okardym, işlärdim; gelmezdim; gelermidiň
+        return [[pcop(neg ? attach(w0, "mAz", { id: "NAOR3", cat: "f" }) : attach(w0, "(A)r", { id: "AOR", cat: "f" }), p, q)]];
+      case "futpast":                                                     // geljekdim; geljek däldim, gelmejekdim; geljekmidiň
+        x = attach(w0, "jAk", { id: "FUT", cat: "n", soft: true });
+        if (!neg) return [[pcop(x, p, q)]];
+        if (q) return [[x, pcop(lit("däl"), p, true)]];
+        return [[x, pcop(lit("däl"), p, false)], [pcop(attach(negate(w0), "jAk", { id: "FUT", cat: "n", soft: true }), p, false)]];
+      case "necpast":                                                     // gelmelidim; gelmeli däldim, gelmemelidim
+        x = attach(w0, "mAlY", { id: "NEC", cat: "n" });
+        if (!neg) return [[pcop(x, p, q)]];
+        if (q) return [[x, pcop(lit("däl"), p, true)]];
+        return [[x, pcop(lit("däl"), p, false)], [pcop(attach(negate(w0), "mAlY", { id: "NEC", cat: "n" }), p, false)]];
+      case "progpast":                                                    // okap otyrdym, garaşyp durduk (b1-u01)
+        if (neg) return null;
+        var a2 = LEX.posture[spec.aux];
+        if (!a2) throw new Error("unknown helper verb " + spec.aux);
+        return [[converb(w0), pcop(mk(a2, { cat: "f", lemma: a2 }), p, q)]];
+      // conditionals (b1-u09): gelsem, gelseň, gelse, gelsek, gelseňiz, gelseler (Wiktionary's gelmek; alsam … alsalar in
+      // the SIL grammar and Gray 2011); negative gelmesem (almasa(m)); after a participle, the conditional of bolmak
+      case "cond":
+        if (q) return null;
+        return [[person(attach(w, "sA", { id: "COND", cat: "g" }), E2, p)]];
+      case "condreal":                                                    // gelýän bolsam, gelen bolsam, geljek bolsam
+        if (q) return null;
+        return part(w0, spec.part, neg).map(function (v) { return v.concat([bolsa(p)]); });
+      // eken after a participle (b1-u03): gelýän eken, gelen eken, geljek eken, gelmeli eken, with the past endings for
+      // the first and second persons (ekenim, ekeniň); for olar, eken or ekenler
+      case "eken":
+        if (q) return null;
+        var ek = person(mk("eken", { cat: "g", lemma: "eken" }), E2C, p);
+        return part(w0, spec.part, neg).reduce(function (acc, v) {
+          acc.push(v.concat([ek]));
+          if (p === 5) acc.push(v.concat([mk("eken", { cat: "x", lemma: "eken" })]));
+          return acc;
+        }, []);
+      // -dYr after a participle for a confident guess (b1-u03): gelendir, gelýändir, geljekdir; olar: gelendirler
+      case "assume":
+        if (neg || q || (p !== 2 && p !== 5)) return null;
+        return part(w0, spec.part, false).map(function (v) {
+          var d = attach(v[v.length - 1], "dYr", { id: "DYR", cat: "f" });
+          return v.slice(0, -1).concat([p === 5 ? attach(d, "lAr", { id: "PL" }) : d]);
+        });
+      default: throw new Error("unknown tense " + t);
+    }
+  }
+
+  // ───────────────────────────── 6. forms by name ─────────────────────────────
+  // The rows of the coverage table in TM-CURRICULUM.md that A1 and A2 teach, each with -negative and -question
+  // (and -negative-question) slugs where the form has them, plus other paradigms a `conjugate` exercise may drill.
+  // form(slug, base, person, { sense }) → { text, seg, variants, segs } or null.
+  var TABLE = [
+    // slug, coverage-table row, grammar points, "verb" | "nom", spec, polarities, persons
+    ["copula-present", 'Present "to be"', "gp-copula-present, gp-dal, gp-question-my", "nom", { tense: "pres" }],
+    ["copula-dyr", 'Present "to be" with -dYr', "gp-copula-present", "nom", { tense: "dyr" }, "pnq"],   // negative, question: ol, olar
+    ["present", "Present -ýAr", "gp-present-yar, gp-present-negative", "verb", { tense: "present" }],
+    ["imperative", "Imperative, 2nd person", "gp-imperative", "verb", { tense: "imp" }, "pn", [1, 4]],
+    ["past", "Past -dY", "gp-past-dy, gp-past-dy-negative-question", "verb", { tense: "past" }],
+    ["past-copula", 'Past "to be" -dY', "gp-past-copula", "nom", { tense: "past" }],
+    ["perfect-ypdyr", "Full perfect -(Y)pdYr", "gp-ypdyr-intro, gp-ypdyr", "verb", { tense: "ypdyr" }],
+    ["future", "Future -jAk (no personal ending)", "gp-future-jak, gp-future-negative-question", "verb", { tense: "future" }],
+    ["aorist", "General present -Ar", "gp-aorist-forms, gp-aorist-negative", "verb", { tense: "aorist" }],
+    ["ability", "Ability -(Y)p bilmek", "gp-yp-bilmek, gp-yp-bilmek-negative", "verb", { tense: "present", ability: true }],
+    ["ability-aorist", "Ability -(Y)p bilmek, general present", "gp-yp-bilmek, gp-yp-bilmek-negative", "verb", { tense: "aorist", ability: true }],
+    ["ability-past", "Ability -(Y)p bilmek, past", "gp-yp-bilmek, gp-yp-bilmek-negative", "verb", { tense: "past", ability: true }],
+    ["necessitative", "Necessity -mAlY (no personal ending)", "gp-maly", "verb", { tense: "necess" }],
+    ["optative", "Optative", "gp-optative", "verb", { tense: "opt" }, "pnq", [0, 3]],
+    ["imperative-3rd", "Imperative, 3rd person -sYn", "gp-imperative-3rd", "verb", { tense: "imp3" }, "pnq", [2, 5]],
+    ["progressive-otyr", "Progressive with posture verbs", "gp-yp-progressive", "verb", { tense: "prog", aux: "otyr" }, "pq"],
+    ["progressive-dur", "Progressive with posture verbs", "gp-yp-progressive", "verb", { tense: "prog", aux: "dur" }, "pq"],
+    ["progressive-yatyr", "Progressive with posture verbs", "gp-yp-progressive", "verb", { tense: "prog", aux: "ýatyr" }, "pq"],
+    ["progressive-yor", "Progressive with posture verbs", "gp-yp-progressive", "verb", { tense: "prog", aux: "ýör" }, "pq"],
+    ["posture-present", "Present of the posture verbs (otyr, dur, ýatyr, ýör)", "gp-yp-progressive", "verb", { tense: "posture" }, "pq"],
+    // B1 (QA-TK-1): the rows of the coverage table from b1-u01 on
+    ["past-continuous", "Past continuous -ýArdY", "gp-past-continuous, gp-compound-tenses", "verb", { tense: "pastcont" }],
+    ["pluperfect", "Pluperfect -(Y)pdY", "gp-pluperfect, gp-compound-tenses", "verb", { tense: "pluperf" }],
+    ["past-habitual", 'Past habit "used to" -ArdY (also the unreal result clause)', "gp-used-to, gp-conditional-unreal", "verb", { tense: "pasthab" }],
+    ["future-past", "Future in the past -jAkdY", "gp-future-in-past", "verb", { tense: "futpast" }],
+    ["necessitative-past", "Past necessity -mAlYdY", "gp-should-have", "verb", { tense: "necpast" }],
+    ["ability-past-habitual", "-(Y)p bilerdi, -(Y)p bilmezdi: could have, couldn't have", "gp-could-have", "verb", { tense: "pasthab", ability: true }],
+    ["progressive-past-otyr", "Past progressive with posture verbs", "gp-past-continuous", "verb", { tense: "progpast", aux: "otyr" }, "pq"],
+    ["progressive-past-dur", "Past progressive with posture verbs", "gp-past-continuous", "verb", { tense: "progpast", aux: "dur" }, "pq"],
+    ["progressive-past-yatyr", "Past progressive with posture verbs", "gp-past-continuous", "verb", { tense: "progpast", aux: "ýatyr" }, "pq"],
+    ["progressive-past-yor", "Past progressive with posture verbs", "gp-past-continuous", "verb", { tense: "progpast", aux: "ýör" }, "pq"],
+    ["conditional", "Conditional -sA", "gp-conditional-sa", "verb", { tense: "cond" }, "pn"],
+    ["conditional-yan", "Real conditions with bolsa: -ýAn bolsa", "gp-conditional-real", "verb", { tense: "condreal", part: "yan" }, "pn"],
+    ["conditional-an", "Real conditions with bolsa: -An bolsa", "gp-conditional-real, gp-conditional-unreal", "verb", { tense: "condreal", part: "an" }, "pn"],
+    ["conditional-jak", "Real conditions with bolsa: -jAk bolsa", "gp-conditional-real", "verb", { tense: "condreal", part: "jak" }, "pn"],
+    ["copula-conditional", "Conditions with bolsa after nouns: öýde bolsam", "gp-conditional-real", "nom", { tense: "cond" }, "pn"],
+    ["eken-yan", "Reported forms with eken: -ýAn eken", "gp-eken-compounds", "verb", { tense: "eken", part: "yan" }, "pn"],
+    ["eken-an", "Reported forms with eken: -An eken", "gp-eken-compounds", "verb", { tense: "eken", part: "an" }, "pn"],
+    ["eken-jak", "Reported forms with eken: -jAk eken", "gp-eken-compounds", "verb", { tense: "eken", part: "jak" }, "pn"],
+    ["eken-maly", "Reported forms with eken: -mAlY eken", "gp-eken-compounds", "verb", { tense: "eken", part: "maly" }, "pn"],
+    ["assumption-an", "Assumption -dYr: -Andyr", "gp-dyr-assumption", "verb", { tense: "assume", part: "an" }, "p", [2, 5]],
+    ["assumption-yan", "Assumption -dYr: -ýAndyr", "gp-dyr-assumption", "verb", { tense: "assume", part: "yan" }, "p", [2, 5]],
+    ["assumption-jak", "Assumption -dYr: -jAkdyr", "gp-dyr-assumption", "verb", { tense: "assume", part: "jak" }, "p", [2, 5]]
+  ];
+  var ALIAS = {
+    "copula": "copula-present", "copula-negative": "copula-present-negative", "copula-question": "copula-present-question",
+    "copula-negative-question": "copula-present-negative-question", "dal": "copula-present-negative",
+    "present-yar": "present", "present-yar-negative": "present-negative", "present-yar-question": "present-question",
+    "present-yar-negative-question": "present-negative-question", "past-dy": "past", "past-dy-negative": "past-negative",
+    "past-dy-question": "past-question", "past-dy-negative-question": "past-negative-question", "future-jak": "future",
+    "future-jak-negative": "future-negative", "future-jak-question": "future-question", "general-present": "aorist",
+    "general-present-negative": "aorist-negative", "general-present-question": "aorist-question", "maly": "necessitative",
+    "maly-negative": "necessitative-negative", "maly-question": "necessitative-question", "yp-bilmek": "ability",
+    "yp-bilmek-negative": "ability-negative", "yp-bilmek-question": "ability-question", "ypdyr": "perfect-ypdyr",
+    "posture": "posture-present", "posture-question": "posture-present-question"
+  };
+  // B1 aliases by grammar point and suffix, with their -negative, -question and -negative-question
+  [["yardy", "past-continuous"], ["ypdy", "pluperfect"], ["ardy", "past-habitual"], ["used-to", "past-habitual"], ["jakdy", "future-past"],
+   ["malydy", "necessitative-past"], ["should-have", "necessitative-past"], ["could-have", "ability-past-habitual"], ["sa", "conditional"]].forEach(function (a) {
+    ["", "-negative", "-question", "-negative-question"].forEach(function (s) { ALIAS[a[0] + s] = a[1] + s; });
+  });
+  ["-negative", "-question", "-negative-question"].forEach(function (s) { ALIAS["ypdyr" + s] = "perfect-ypdyr" + s; });
+  var FORMS = {};
+  TABLE.forEach(function (r) {
+    var pols = r[5] || "pnq", persons = r[6] || [0, 1, 2, 3, 4, 5];
+    [["", false, false], ["-negative", true, false], ["-question", false, true], ["-negative-question", true, true]].forEach(function (x) {
+      if ((x[1] && pols.indexOf("n") < 0) || (x[2] && pols.indexOf("q") < 0)) return;
+      var spec = {}, k;
+      for (k in r[4]) spec[k] = r[4][k];
+      spec.neg = x[1]; spec.q = x[2];
+      FORMS[r[0] + x[0]] = { slug: r[0] + x[0], row: r[1], gp: r[2], persons: persons, build: function (b, p) {
+        if (persons.indexOf(p) < 0) return null;
+        var s = {}, j;
+        for (j in spec) s[j] = spec[j];
+        s.p = p;
+        return r[3] === "nom" ? copula(b, s) : conj(b, s);
+      } };
+    });
+  });
+  // the other paradigms: the moods side by side, possessives, pronouns
+  function moods(neg) {    // optative for men and biz, imperative for sen and siz, -sYn for ol and olar
+    return function (b, p) { return conj(b, { tense: p === 0 || p === 3 ? "opt" : p === 1 || p === 4 ? "imp" : "imp3", neg: neg, p: p }); };
+  }
+  function possV(b, p, o, after) {   // ejäm and ejem; kitaby and, for olar, kitaplary
+    var w = mkNoun(b, o), vs = [poss(w, p)];
+    if (/e$/.test(lower(b)) && p !== 2 && p !== 5) vs.push(poss(w, p, { keepE: true }));
+    if (p === 5) vs.push(poss(w, 5, { lary: true }));
+    return vs.map(function (x) { return after ? after(x) : [x]; });
+  }
+  var EXTRA = {
+    "moods": moods(false),
+    "moods-negative": moods(true),
+    "possessive": function (b, p, o) { return possV(b, p, o); },
+    "possessive-locative": function (b, p, o) { return possV(b, p, o, function (x) { return [addCase(x, "loc")]; }); },
+    "possessive-dative": function (b, p, o) { return possV(b, p, o, function (x) { return [addCase(x, "dat")]; }); },
+    "possessive-accusative": function (b, p, o) { return possV(b, p, o, function (x) { return [addCase(x, "acc")]; }); },
+    "possessive-bar": function (b, p, o) { return possV(b, p, o, function (x) { return [x, lit("bar")]; }); },
+    "possessive-yok": function (b, p, o) { return possV(b, p, o, function (x) { return [x, lit("ýok")]; }); },
+    "pronoun-genitive-ky": function (b, p) { return [[ky(addCase(mkNoun(PERSONS[p]), "gen"))]]; }
+  };
+  [["accusative", "acc"], ["dative", "dat"], ["locative", "loc"], ["ablative", "abl"], ["genitive", "gen"]].forEach(function (c) {
+    EXTRA["pronoun-" + c[0]] = function (b, p) { return [[addCase(mkNoun(PERSONS[p]), c[1])]]; };
+  });
+  // B1 (QA-TK-1): the person forms of verbal nouns, fact clauses and converbs. The verbal noun -mAk with a possessive,
+  // olar also -mAklArY: meniň okamagym … olaryň okamaklary (Gray 2011); -dYgY on a participle: gelendigim, gelendigini,
+  // gitjekdigimi, işleýändigini (Gray; the Turkmen Bible's orýandygymy, biljekdigimi)
+  function mak(b) { return attach(mkVerb(b), "mAk", { id: "MAK", cat: "n", soft: true }); }
+  function dygy(type) { return function (w0) { return attach(part(w0, type, false)[0][0], "dYk", { id: "DYK", cat: "n", soft: true }); }; }
+  function possOf(mkw, c) {
+    return function (b, p) {
+      var w = mkw(typeof b === "string" ? mkVerb(b) : b), vs = [poss(w, p)];
+      if (p === 5) vs.push(poss(w, 5, { lary: true }));
+      return vs.map(function (x) { return [c ? addCase(x, c) : x]; });
+    };
+  }
+  EXTRA["verbal-noun-possessive"] = possOf(function (w) { return attach(w, "mAk", { id: "MAK", cat: "n", soft: true }); });
+  EXTRA["verbal-noun-possessive-accusative"] = possOf(function (w) { return attach(w, "mAk", { id: "MAK", cat: "n", soft: true }); }, "acc");
+  EXTRA["verbal-noun-possessive-dative"] = possOf(function (w) { return attach(w, "mAk", { id: "MAK", cat: "n", soft: true }); }, "dat");
+  [["an", "an"], ["yan", "yan"], ["jak", "jak"]].forEach(function (t) {
+    EXTRA["dygy-" + t[0]] = possOf(dygy(t[1]));
+    EXTRA["dygy-" + t[0] + "-accusative"] = possOf(dygy(t[1]), "acc");
+  });
+  // -ýAnçA "until" with the past endings: gelýänçäm, gelýänçäň, gelýänçä (or gelýänçe), gelýänçäk, gelýänçäňiz, olar
+  // gelýänçä (or gelýänçe). Gray (2011) tabulates gelýänçäm … gelýänçe(ler) and has ýazýançaň; the explanatory
+  // dictionary (enedilim.com) lists gelýänçä among the forms of gelmek
+  EXTRA["until-yanca"] = function (b, p) {
+    var y = attach(mkVerb(b), "ýÄn", { id: "YAN", cat: "n" }), a = attach(y, "çÄ", { id: "YANCA", cat: "g" });
+    if (p === 2 || p === 5) return [[a], [attach(y, "çA", { id: "YANCA", cat: "g" })]];
+    return [[person(a, E2, p)]];
+  };
+  // -kA after -ýAr "while" (a2-u11): gelýärkäm, gelýärkäň, gelýärkä (the SIL grammar's gelýärkäm; enedilim.com's
+  // "Sen kiçijikkäň"); the plural persons are left out, no source shows them
+  EXTRA["while-ka"] = function (b, p) {
+    if (p > 2) return null;
+    var k = attach(attach(mkVerb(b), "ýÄr", { id: "PRES", cat: "f" }), "kÄ", { id: "KA", cat: "g" });
+    return [[person(k, E2, p)]];
+  };
+  var EXTRA_INFO = {
+    "moods": ["The moods side by side: optative (men, biz), imperative (sen, siz), -sYn (ol, olar)", "gp-imperative, gp-optative, gp-imperative-3rd"],
+    "moods-negative": ["The moods side by side, negative", "gp-imperative, gp-optative, gp-imperative-3rd"],
+    "possessive": ["Possessive endings", "gp-possessive-suffixes, gp-possessive-voicing, gp-vowel-loss"],
+    "possessive-locative": ["Possessive and locative", "gp-possessive-suffixes, gp-pronominal-n"],
+    "possessive-dative": ["Possessive and dative", "gp-possessive-suffixes, gp-pronominal-n"],
+    "possessive-accusative": ["Possessive and accusative", "gp-possessive-suffixes, gp-pronominal-n"],
+    "possessive-bar": ['"To have" with bar', "gp-possessive-have"],
+    "possessive-yok": ['"Not to have" with ýok', "gp-possessive-have"],
+    "pronoun-genitive-ky": ["-ky after the genitive of the pronouns", "gp-ky-pronoun"],
+    "pronoun-accusative": ["Pronouns in the accusative", "gp-pronoun-accusative"],
+    "pronoun-dative": ["Pronouns in the dative", "gp-pronoun-cases-dat-abl"],
+    "pronoun-locative": ["Pronouns in the locative", "gp-place-words"],
+    "pronoun-ablative": ["Pronouns in the ablative", "gp-pronoun-cases-dat-abl"],
+    "pronoun-genitive": ["Pronouns in the genitive", "gp-genitive"],
+    "verbal-noun-possessive": ["The verbal noun -mAk with possessive endings", "gp-mak-possessive"],
+    "verbal-noun-possessive-accusative": ["The verbal noun -mAk with a possessive and the accusative", "gp-mak-possessive, gp-mak-cases"],
+    "verbal-noun-possessive-dative": ["The verbal noun -mAk with a possessive and the dative", "gp-mak-possessive, gp-mak-cases"],
+    "dygy-an": ["Fact clauses: -An + -dYgY with possessive endings", "gp-dygy"],
+    "dygy-an-accusative": ["Fact clauses: -An + -dYgY, accusative", "gp-dygy"],
+    "dygy-yan": ["Fact clauses: -ýAn + -dYgY with possessive endings", "gp-dygy"],
+    "dygy-yan-accusative": ["Fact clauses: -ýAn + -dYgY, accusative", "gp-dygy"],
+    "dygy-jak": ["Fact clauses: -jAk + -dYgY with possessive endings", "gp-dygy"],
+    "dygy-jak-accusative": ["Fact clauses: -jAk + -dYgY, accusative", "gp-dygy, gp-reported-speech"],
+    "until-yanca": ["-ýAnçA, until, with the past endings", "gp-yanca"],
+    "while-ka": ["-kA after -ýAr, while (men, sen, ol)", "gp-ka"]
+  };
+  Object.keys(EXTRA).forEach(function (k) {
+    FORMS[k] = { slug: k, row: EXTRA_INFO[k][0], gp: EXTRA_INFO[k][1], persons: k === "while-ka" ? [0, 1, 2] : [0, 1, 2, 3, 4, 5], build: EXTRA[k] };
+  });
+
+  // every spelling a list of variants stands for: the rounding rule with -mY counted or not (boldumy, boldymy),
+  // and a loanword of LEX.loanRound rounded or not (stoluň, stolyň); the usual spelling of the usual variant first
+  var RENDERS = [{}, { clitic: false }, { noRound: true }, { clitic: false, noRound: true }];
+  function pack(vs) {
+    if (!vs || !vs.length) return null;
+    var texts = [], segs = [];
+    RENDERS.forEach(function (o) {
+      vs.forEach(function (v) {
+        var t = v.map(function (w) { return text(w, o); }).join(" ");
+        if (texts.indexOf(t) < 0) { texts.push(t); segs.push(v.map(function (w) { return segOf(w, o); }).join(" ")); }
+      });
+    });
+    return { text: texts[0], seg: segs[0], variants: texts, segs: segs };
+  }
+  function formInfo(slug) {
+    var f = FORMS[ALIAS[slug] || slug];
+    return f ? { slug: slug, same: ALIAS[slug] ? f.slug : null, row: f.row, gp: f.gp, persons: f.persons.map(function (i) { return PERSONS[i]; }) } : null;
+  }
+  function form(slug, base, personName, o) {
+    var f = FORMS[ALIAS[slug] || slug], p = personIndex(personName);
+    if (!f || p < 0) return null;
+    return pack(f.build(base, p, o || {}));
+  }
+  function paradigm(slug, base, o) {
+    var out = {};
+    PERSONS.forEach(function (n) { out[n] = form(slug, base, n, o); });
+    return out;
+  }
+  function forms() { return Object.keys(FORMS).concat(Object.keys(ALIAS)).sort().map(formInfo).filter(Boolean); }
+  // the readings of a spelling that the lexicon tells apart: readings("at") → [{ sense: 1, gloss: "name" }, …]
+  function readings(base) {
+    var h = LEX.homographs[lower(lastWord(base))];
+    return h ? h.map(function (x, i) { return { sense: i + 1, gloss: x[0] }; }) : [{ sense: null, gloss: null }];
+  }
+
+  // ───────────────────────────── 7. analysis of morph tiles ─────────────────────────────
+  // Every suffix the analysis may try, by id: what it attaches to and what it makes. Categories: v a verb stem,
+  // n a noun or nominal predicate, k a noun with a case ending, f a finite form with type 1 endings, g one with
+  // type 2 endings (-dY), c the converb, x a form that takes nothing but -mY, q a word that ends in -mY.
+  // build(base, ids) applies them in order; analyze() searches them.
+  var INV = [], BY_ID = {};
+  function step(id, on, fn) { var s = { id: id, on: on.split(""), fn: fn }; INV.push(s); BY_ID[id] = s; }
+  function tstep(id, on, tpl, cat, o) {
+    step(id, on, function (w) { var oo = { id: id, cat: cat }, k; if (o) for (k in o) oo[k] = o[k]; return attach(w, tpl, oo); });
+  }
+  // nouns
+  step("PL", "nfg", function (w) { return w.cat === "n" ? plural(w) : attach(w, "lAr", { id: "PL" }); });
+  [0, 1, 2, 3, 4, 5].forEach(function (i) { step("POSS" + (i + 1), "n", function (w) { return poss(w, i); }); });
+  step("POSS6-LARY", "n", function (w) { return poss(w, 5, { lary: true }); });
+  [0, 1, 3, 4].forEach(function (i) { step("POSS" + (i + 1) + "-E", "n", function (w) { return poss(w, i, { keepE: true }); }); });   // ejem beside ejäm
+  ["acc", "dat", "loc", "abl", "gen"].forEach(function (c) { step(c.toUpperCase(), "n", function (w) { return addCase(w, c); }); });
+  step("KY", "nk", function (w) { if (w.cat === "k" && w.f["case"] !== "loc" && w.f["case"] !== "gen") throw new Error("-kY follows the locative or genitive"); return ky(w); });
+  // the copula and endings
+  [0, 1, 3, 4].forEach(function (i) {
+    step("E1-" + (i + 1), "nkfc", function (w) { return person(w, E1, i); });   // c: gelipsiň (B1)
+    step("E2-" + (i + 1), "g", function (w) { return person(w, E2, i); });
+  });
+  tstep("DYR", "nkfc", "dYr", "f");
+  tstep("PCOP", "nkqfc", "dY", "g");      // B1: also after -ýAr, -Ar (f) and -(Y)p, -mAn (c): gelýärdi, gelipdi
+  step("Q", "nkfgx", function (w) { var x = Q(w); x.cat = "q"; return x; });
+  tstep("Q-P2", "q", "ň", "x");          // gelýärmiň
+  tstep("Q-P2S", "q", "sYň", "x");       // gelermisiň
+  tstep("Q-P5", "q", "sYňYz", "x");      // gelýärmisiňiz
+  // word building (a2-u08, a2-u12) and ordinals (a1-u11)
+  [["LY", "lY"], ["SYZ", "sYz"], ["CY", "çY"], ["CA", "çA"], ["NJY", "(Y)njY"]].forEach(function (d) { tstep(d[0], "n", d[1], "n"); });
+  tstep("LYK", "n", "lYk", "n", { soft: true });
+  // -rAk voices a final k, t, p, ç of the stem: ak → agrak, gök → gögräk, oňat → oňadrak (the explanatory dictionary's
+  // grammar pages, enedilim.com, "Sypatlar", spelling rule 3 of kemlik derejesi; A2-4)
+  step("RAK", "n", function (w) {
+    var x = clone(w), p = lastPart(x);
+    if (p.k === "stem" && x.parts.length === 1) { var r = voiced(p.t); if (r) { p.t = r; p.m = dots(r); } }
+    return attach(x, "rÄk", { id: "RAK", cat: "n" });
+  });
+  // diminutives (a2-u12): -jYk (oglanjyk, kiçijik, towşanjyk) and -jAgAz (gyzjagaz): "dereje ýasaýjy goşulmalar"
+  // in the explanatory dictionary's grammar pages (enedilim.com); towşanjyk in the SIL grammar page (webonary.work)
+  tstep("JYK", "n", "jYk", "n", { soft: true });
+  tstep("JAGAZ", "n", "jAgAz", "n");
+  // verbs
+  step("NEG", "v", negate);
+  tstep("PRES", "v", "ýÄr", "f");
+  tstep("PAST", "v", "dY", "g");
+  tstep("FUT", "v", "jAk", "n", { soft: true });
+  tstep("AOR", "v", "(A)r", "f");
+  tstep("NAOR", "v", "mAr", "f");
+  tstep("NAOR3", "v", "mAz", "f");
+  tstep("NEC", "v", "mAlY", "n");
+  step("CVB", "v", converb);
+  tstep("IMP", "v", "(Y)ň", "x", { ea: true });
+  tstep("IMP-POLITE", "v", "(Y)ňYz", "x", { ea: true });
+  tstep("OPT1", "v", "(A)ýYn", "x");
+  tstep("OPT4", "v", "(A)lY", "x");
+  tstep("OPT4-N", "v", "(A)lYň", "x");
+  tstep("IMP3", "v", "sYn", "f");
+  tstep("AN", "v", "(A)n", "n");
+  // B1 (QA-TK-1): participles, verbal nouns, converbs, the conditional, voices, verbs from nouns
+  tstep("YAN", "v", "ýÄn", "n");                                          // gelýän, okaýan
+  tstep("DYK", "vn", "dYk", "n", { soft: true });                         // gelmedik; gelendigi, gitjekdigimi
+  tstep("MAK", "v", "mAk", "n", { soft: true });                          // gelmek, gelmegi, okamaga, gelmäge
+  tstep("SA", "v", "sA", "g");                                            // gelsem, gelseňiz
+  tstep("MAZDAN", "v", "mAzdAn", "c");                                    // gelmezden (öň)
+  step("YANCA", "v", function (w) { return attach(attach(w, "ýÄn", { id: "YAN", cat: "n" }), "çÄ", { id: "YANCA", cat: "g" }); });   // gelýänçäm
+  tstep("KA", "nkf", "kÄ", "g");                                          // çagakam, öýdekä, gelýärkäm (a2-u11)
+  step("CVB-A", "v", function (w) {                                       // gele-gele, güle-güle, dura-dura (consonant stems)
+    if (isV(letters(body(w)).slice(-1))) throw new Error("-A after a consonant only");
+    return attach(w, "A", { id: "CVB-A", cat: "c" });
+  });
+  step("YS", "v", function (w) {                                          // geliş, okaýyş, ýöreýiş (b1-u04)
+    return attach(w, isV(letters(body(w)).slice(-1)) ? "ýYş" : "(Y)ş", { id: "YS", cat: "n" });
+  });
+  [["PASS", "pass"], ["REFL", "refl"], ["RECIP", "recip"], ["CAUS", "caus"]].forEach(function (v) {
+    step(v[0], "v", function (w) { var x = voice(w, v[1]); x.cat = "v"; return x; });
+  });
+  [["LA", "lA"], ["LAS", "lAş"], ["LAN", "lAn"]].forEach(function (d) {     // arassala, gowulaş, öýlen
+    step(d[0], "n", function (w) { var x = attach(w, d[1], { id: d[0], cat: "v" }); x.lex = {}; x.lemma = body(x); return x; });
+  });
+  // -Al: azal, köpel after a consonant; (B1-5) after a, e just -l (gysgal-: gysgalýar in print; garal-, SIL), and a final
+  // y, i drops (ulal-, kiçel-: Peace Corps dictionary, 1999; garral-, SIL)
+  step("AL", "n", function (w) {
+    var L = letters(body(w)), c = L.slice(-1), x = w;
+    if (/[yiuü]/.test(c)) { x = clone(w); var p = lastPart(x); p.t = p.t.slice(0, -1); p.m = p.m.slice(0, -1); x = attach(x, "Al", { id: "AL", cat: "v" }); }
+    else x = attach(w, isV(c) ? "l" : "Al", { id: "AL", cat: "v" });
+    x.lex = {}; x.lemma = body(x); return x;
+  });
+
+  function start(base, o) {
+    var out = [];
+    if (isVerbBase(base)) out.push(mkVerb(base));
+    readings(base).forEach(function (r) { out.push(mkNoun(base, { sense: o && o.sense != null ? o.sense : r.sense })); });
+    return out;
+  }
+  function build(base, ids, o) {
+    var first = BY_ID[ids[0]];
+    var w = typeof base !== "string" ? base : first && first.on[0] === "v" && isVerbBase(base) ? mkVerb(base) : mkNoun(base, o);
+    ids.forEach(function (id) {
+      var s = BY_ID[id];
+      if (!s) throw new Error("unknown suffix " + id);
+      if (s.on.indexOf(w.cat) < 0) throw new Error(id + " does not attach to a word of category " + w.cat);
+      w = s.fn(w);
+    });
+    return { text: text(w), seg: segOf(w), word: w };
+  }
+
+  // fold for the loose search: the letters a harmony, rounding, voicing or e/ä mistake can change
+  var FOLD = { a: "A", e: "A", "ä": "A", y: "Y", i: "Y", u: "Y", "ü": "Y", o: "O", "ö": "O", d: "D", t: "D", g: "K", k: "K",
+               b: "P", p: "P", j: "J", "ç": "J" };
+  function fold(s) { var o = ""; s = lower(s); for (var i = 0; i < s.length; i++) o += FOLD[s[i]] || s[i]; return o; }
+  // looser still: a vowel written before the vowel of the dative or another suffix (Marya for Mara, ejeä for ejä)
+  function fuse(s) { return fold(s).replace(/[AYO](?=[AYO])/g, ""); }
+  function bounds(w, o) {
+    var set = {}, n = w.pre.length, rp = renderParts(w, o);
+    for (var i = 0; i < rp.length; i++) { n += rp[i].length; set[n] = true; }
+    return set;
+  }
+  function search(starts, target, B, loose, maxDepth) {
+    var key = loose === 2 ? fuse : loose ? fold : function (t) { return t; }, T = key(target), seen;
+    function same(t) { return key(t) === T; }
+    function dfs(w, ids) {
+      if (ids.length) {
+        for (var r = 0; r < RENDERS.length; r++) {
+          if (!same(text(w, RENDERS[r]))) continue;
+          if (!B) return { w: w, ids: ids, o: RENDERS[r] };
+          var bs = bounds(w, RENDERS[r]);
+          if (B.every(function (b) { return bs[b]; })) return { w: w, ids: ids, o: RENDERS[r] };
+        }
+      }
+      if (ids.length >= maxDepth) return null;
+      var t = text(w), sk = ids.length + "|" + w.cat + "|" + w.parts.map(function (p) { return p.t; }).join("|") + "|" + JSON.stringify(w.f);
+      if (seen[sk]) return null;
+      seen[sk] = true;
+      for (var i = 0; i < INV.length; i++) {
+        var s = INV[i], w2;
+        if (s.on.indexOf(w.cat) < 0) continue;
+        try { w2 = s.fn(w); } catch (e) { continue; }
+        if (!w2) continue;
+        // a later suffix can still change the last letters (gördi → gördüm, Mary → Mara, işle → işläp)
+        var t2 = text(w2);
+        var k2 = key(t2);
+        if (t2 === t || k2.length > T.length + 1 || k2.slice(0, Math.max(0, k2.length - 3)) !== T.slice(0, Math.max(0, k2.length - 3))) continue;
+        var res = dfs(w2, ids.concat(s.id));
+        if (res) return res;
+      }
+      return null;
+    }
+    for (var j = 0; j < starts.length; j++) { seen = {}; var r = dfs(starts[j], []); if (r) return r; }
+    return null;
+  }
+  // analyze(base, tiles): base is the dictionary form (verbs with -mAk), tiles the stem and suffixes in order.
+  //   { ok: true, ids, seg }                       the tiles are base + suffixes, cut at morpheme boundaries
+  //   { ok: false, reason: "boundaries", seg }     the word is right but the tiles cut a morpheme
+  //   { ok: false, reason: "form", text, seg }     the same suffixes give another word: text is the engine's
+  //   { ok: false, reason: "unknown" }             no analysis (a suffix or stem change the engine lacks)
+  function analyze(base, tiles, o) {
+    var target = tiles.join(""), B = [], n = 0, starts = start(base, o);
+    for (var i = 0; i < tiles.length - 1; i++) { n += tiles[i].length; B.push(n); }
+    var r = search(starts, target, B, false, 8);
+    if (r) return { ok: true, text: target, seg: segOf(r.w, r.o), ids: r.ids };
+    r = search(starts, target, null, false, 8);
+    if (r) return { ok: false, reason: "boundaries", text: target, seg: segOf(r.w, r.o), ids: r.ids };
+    r = search(starts, target, null, 1, 8) || search(starts, target, null, 2, 8);
+    if (r) return { ok: false, reason: "form", text: text(r.w), seg: segOf(r.w), ids: r.ids };
+    return { ok: false, reason: "unknown" };
+  }
+
+  // ───────────────────────────── API ─────────────────────────────
+  function out(w) { return { text: text(w), seg: segOf(w) }; }
+  return {
+    PERSONS: PERSONS.slice(), LEX: LEX, SUFFIXES: INV.map(function (s) { return s.id; }),
+    // letters and sounds
+    lower: lower, isVowel: isV, lastVowel: lastV, syllables: syllables, harmonyA: harmA, harmonyY: harmY,
+    // words: noun("kitap"), verb("gelmek"), attach(word, "(Y)m"), text(word), seg(word)
+    noun: mkNoun, verb: mkVerb, attach: attach, text: text, seg: segOf,
+    plural: plural, possessive: function (w, p, o) { return poss(w, personIndex(p), o); }, addCase: addCase, ky: ky,
+    negative: negate,
+    // ready-made results { text, seg } or { text, seg, variants, segs }
+    decline: function (base, o) { return out(decline(base, o)); },
+    converb: function (base) { return out(converb(mkVerb(base))); },
+    conjugate: function (base, spec) { return pack(conj(base, spec)); },
+    copula: function (pred, spec) { return pack(copula(pred, spec)); },
+    // B1: participle("gelmek", "yan" | "an" | "jak" | "maly", neg) → gelýän, gelen, geljek, gelmeli (negative gelmeýän,
+    // gelmedik, gelmejek, gelmeli däl); verbalNoun("okamak", { poss, case }) → okamagym, okamaga, okamakdan;
+    // voice("ýazmak", "pass" | "refl" | "recip" | "caus") → ýazylmak; negativeConverb("gelmek") → gelmän
+    participle: function (base, type, neg) { return pack(part(mkVerb(base), type, !!neg)); },
+    verbalNoun: function (base, o) {
+      o = o || {};
+      var w = mak(base);
+      if (o.poss != null) w = poss(w, personIndex(o.poss), o);
+      if (o["case"]) w = addCase(w, o["case"]);
+      return out(w);
+    },
+    voice: function (base, kind) { var w = voice(mkVerb(base), kind); return { text: infinitive(w), seg: segOf(w) + "|" + (front(lastV(body(w))) ? "mek" : "mak") }; },
+    negativeConverb: function (base) { return out(negConverb(mkVerb(base))); },
+    build: build, form: form, formInfo: formInfo, forms: forms, paradigm: paradigm, readings: readings, analyze: analyze, fold: fold
+  };
+});
